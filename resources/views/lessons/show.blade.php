@@ -2,16 +2,16 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-xs text-gray-400 mb-1">
+                <p class="text-xs text-gray-400 dark:text-slate-500 mb-1">
                     <a href="{{ route('tracks.show', $lesson->learningTrack->slug) }}" class="hover:text-indigo-600">
                         {{ $lesson->learningTrack->title }}
                     </a>
                 </p>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
                     {{ $lesson->title }}
                 </h2>
             </div>
-            <a href="{{ route('tracks.show', $lesson->learningTrack->slug) }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; 트랙으로</a>
+            <a href="{{ route('tracks.show', $lesson->learningTrack->slug) }}" class="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white">&larr; 트랙으로</a>
         </div>
     </x-slot>
 
@@ -20,9 +20,9 @@
 
             {{-- 레슨 목표 --}}
             @if($lesson->objective)
-                <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                    <div class="text-xs font-medium text-indigo-500 mb-1">학습 목표</div>
-                    <p class="text-sm text-indigo-800">{{ $lesson->objective }}</p>
+                <div class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-4">
+                    <div class="text-xs font-medium text-indigo-500 dark:text-indigo-400 mb-1">학습 목표</div>
+                    <p class="text-sm text-indigo-800 dark:text-indigo-300">{{ $lesson->objective }}</p>
                 </div>
             @endif
 
@@ -30,12 +30,12 @@
             <div x-data="{ currentStep: 0, totalSteps: {{ $lesson->steps->count() }} }" class="space-y-4">
 
                 {{-- 진행 바 --}}
-                <div class="bg-white shadow-sm sm:rounded-lg p-4">
-                    <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-4">
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400 mb-2">
                         <span>진행률</span>
                         <span x-text="Math.round(((currentStep + 1) / totalSteps) * 100) + '%'"></span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                         <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
                              :style="'width: ' + ((currentStep + 1) / totalSteps * 100) + '%'"></div>
                     </div>
@@ -47,10 +47,10 @@
                          x-transition:enter="transition ease-out duration-200"
                          x-transition:enter-start="opacity-0 transform translate-y-2"
                          x-transition:enter-end="opacity-100 transform translate-y-0"
-                         class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                         class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg">
 
                         {{-- Step 헤더 --}}
-                        <div class="px-6 py-4 border-b border-gray-100">
+                        <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700">
                             <div class="flex items-center gap-3">
                                 @php
                                     $stepTypeLabel = match($step->step_type) {
@@ -76,7 +76,7 @@
                                     {{ $stepTypeLabel }}
                                 </span>
                                 @if($step->title)
-                                    <h3 class="text-base font-semibold text-gray-800">{{ $step->title }}</h3>
+                                    <h3 class="text-base font-semibold text-gray-800 dark:text-white">{{ $step->title }}</h3>
                                 @endif
                             </div>
                         </div>
@@ -85,7 +85,7 @@
                         <div class="px-4 py-4 sm:px-6 sm:py-6">
                             @switch($step->step_type)
                                 @case('intro')
-                                    <div class="prose prose-sm max-w-none text-gray-700">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300">
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
                                     {{-- focus 배열이 있으면 강조 표시 --}}
@@ -101,7 +101,7 @@
                                     @break
 
                                 @case('explanation')
-                                    <div class="prose prose-sm max-w-none text-gray-700">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300">
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
 
@@ -124,10 +124,10 @@
                                             <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
                                                 @foreach($hanjaChars as $hc)
                                                     <a href="{{ route('hanja.show', $hc->slug) }}"
-                                                       class="block p-4 border border-gray-200 rounded-lg text-center hover:border-indigo-300 hover:shadow-md transition">
-                                                        <div class="text-4xl font-serif mb-2">{{ $hc->char_value }}</div>
-                                                        <div class="text-sm font-medium text-gray-800">{{ $hc->reading_ko }}</div>
-                                                        <div class="text-xs text-gray-500">{{ $hc->meaning_ko }}</div>
+                                                       class="block p-4 border border-gray-200 dark:border-slate-700 rounded-lg text-center hover:border-indigo-300 hover:shadow-md transition">
+                                                        <div class="text-4xl font-serif mb-2 dark:text-white">{{ $hc->char_value }}</div>
+                                                        <div class="text-sm font-medium text-gray-800 dark:text-white">{{ $hc->reading_ko }}</div>
+                                                        <div class="text-xs text-gray-500 dark:text-slate-400">{{ $hc->meaning_ko }}</div>
                                                         @if($hc->element)
                                                             @php
                                                                 $elBadge = match($hc->element) {
@@ -152,9 +152,9 @@
                                                 @foreach($hanjaChars as $idx => $hc)
                                                     <div class="flex items-center gap-2">
                                                         <a href="{{ route('hanja.show', $hc->slug) }}"
-                                                           class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-indigo-300 transition min-w-[80px]">
-                                                            <div class="text-3xl font-serif mb-1">{{ $hc->char_value }}</div>
-                                                            <div class="text-xs text-gray-600">{{ $hc->reading_ko }}</div>
+                                                           class="flex flex-col items-center p-3 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-indigo-300 transition min-w-[80px]">
+                                                            <div class="text-3xl font-serif mb-1 dark:text-white">{{ $hc->char_value }}</div>
+                                                            <div class="text-xs text-gray-600 dark:text-slate-300">{{ $hc->reading_ko }}</div>
                                                         </a>
                                                         @if(!$loop->last)
                                                             <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -167,10 +167,10 @@
                                             <div class="mt-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                                                 @foreach($hanjaChars as $hc)
                                                     <a href="{{ route('hanja.show', $hc->slug) }}"
-                                                       class="block p-4 border border-gray-200 rounded-xl text-center hover:border-indigo-300 hover:shadow-md transition">
-                                                        <div class="text-5xl font-serif mb-2">{{ $hc->char_value }}</div>
-                                                        <div class="text-sm font-semibold text-gray-800">{{ $hc->reading_ko }}</div>
-                                                        <div class="text-xs text-gray-500">{{ $hc->meaning_ko }}</div>
+                                                       class="block p-4 border border-gray-200 dark:border-slate-700 rounded-xl text-center hover:border-indigo-300 hover:shadow-md transition">
+                                                        <div class="text-5xl font-serif mb-2 dark:text-white">{{ $hc->char_value }}</div>
+                                                        <div class="text-sm font-semibold text-gray-800 dark:text-white">{{ $hc->reading_ko }}</div>
+                                                        <div class="text-xs text-gray-500 dark:text-slate-400">{{ $hc->meaning_ko }}</div>
                                                     </a>
                                                 @endforeach
                                             </div>
@@ -186,10 +186,10 @@
                                                 @endphp
                                                 @if($hc)
                                                     <a href="{{ route('hanja.show', $hc->slug) }}"
-                                                       class="block p-4 border border-gray-200 rounded-lg text-center hover:border-indigo-300 transition">
-                                                        <div class="text-4xl mb-2">{{ $hc->char_value }}</div>
-                                                        <div class="text-sm font-medium text-gray-800">{{ $hc->reading_ko }}</div>
-                                                        <div class="text-xs text-gray-500">{{ $hc->meaning_ko }}</div>
+                                                       class="block p-4 border border-gray-200 dark:border-slate-700 rounded-lg text-center hover:border-indigo-300 transition">
+                                                        <div class="text-4xl mb-2 dark:text-white">{{ $hc->char_value }}</div>
+                                                        <div class="text-sm font-medium text-gray-800 dark:text-white">{{ $hc->reading_ko }}</div>
+                                                        <div class="text-xs text-gray-500 dark:text-slate-400">{{ $hc->meaning_ko }}</div>
                                                     </a>
                                                 @endif
                                             @endforeach
@@ -204,10 +204,10 @@
                                             <div class="flex flex-wrap justify-center gap-8 mb-6">
                                                 @foreach($hanjaChars as $hc)
                                                     <div class="flex flex-col items-center">
-                                                        <div class="text-8xl font-serif text-gray-800 leading-none mb-2">{{ $hc->char_value }}</div>
-                                                        <div class="text-sm font-medium text-gray-700">{{ $hc->reading_ko }} ({{ $hc->meaning_ko }})</div>
+                                                        <div class="text-8xl font-serif text-gray-800 dark:text-white leading-none mb-2">{{ $hc->char_value }}</div>
+                                                        <div class="text-sm font-medium text-gray-700 dark:text-slate-300">{{ $hc->reading_ko }} ({{ $hc->meaning_ko }})</div>
                                                         @if($hc->stroke_count)
-                                                            <div class="text-xs text-gray-400 mt-1">{{ $hc->stroke_count }}획</div>
+                                                            <div class="text-xs text-gray-400 dark:text-slate-500 mt-1">{{ $hc->stroke_count }}획</div>
                                                         @endif
                                                     </div>
                                                 @endforeach
@@ -220,9 +220,9 @@
                                         @endif
 
                                         {{-- 획순 안내 --}}
-                                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left mt-4">
-                                            <h4 class="text-sm font-semibold text-amber-800 mb-2">획순 안내</h4>
-                                            <ul class="text-sm text-amber-700 space-y-1">
+                                        <div class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg p-4 text-left mt-4">
+                                            <h4 class="text-sm font-semibold text-amber-800 dark:text-amber-400 mb-2">획순 안내</h4>
+                                            <ul class="text-sm text-amber-700 dark:text-amber-300 space-y-1">
                                                 <li>1. 위에서 아래로 (從上到下)</li>
                                                 <li>2. 왼쪽에서 오른쪽으로 (從左到右)</li>
                                                 <li>3. 가로획 먼저, 세로획 나중에</li>
@@ -230,7 +230,7 @@
                                             </ul>
                                         </div>
 
-                                        <div class="prose prose-sm max-w-none text-gray-700 text-left mt-4">
+                                        <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300 text-left mt-4">
                                             {!! nl2br(e($step->content_markdown)) !!}
                                         </div>
                                     </div>
@@ -241,13 +241,13 @@
                                         $repeatCount = $step->payload_json['repeat_count'] ?? 3;
                                         $practiceChar = $hanjaChars->first();
                                     @endphp
-                                    <div class="prose prose-sm max-w-none text-gray-700 mb-4">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300 mb-4">
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
 
                                     {{-- 연습 안내 --}}
-                                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6">
-                                        <p class="text-sm text-emerald-800 font-medium">
+                                    <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-lg p-4 mb-6">
+                                        <p class="text-sm text-emerald-800 dark:text-emerald-400 font-medium">
                                             아래 캔버스에서 {{ $repeatCount }}번 연습해보세요!
                                             @if($practiceChar)
                                                 가이드 글자: <span class="text-2xl font-serif">{{ $practiceChar->char_value }}</span>
@@ -331,7 +331,7 @@
                                                 <template x-for="(cell, i) in cells" :key="i">
                                                     <div class="relative group">
                                                         <span class="absolute top-1 left-2 text-xs text-gray-300 font-mono z-10" x-text="i + 1"></span>
-                                                        <div class="border-2 border-gray-200 rounded-lg overflow-hidden bg-white aspect-square hover:border-indigo-300 transition" style="touch-action:none;">
+                                                        <div class="border-2 border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800 aspect-square hover:border-indigo-300 transition" style="touch-action:none;">
                                                             <canvas :id="'lessonCell' + i" width="300" height="300"
                                                                 class="w-full h-full"
                                                                 style="touch-action:none; cursor: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22><circle cx=%2212%22 cy=%2212%22 r=%224%22 fill=%22%231e293b%22 opacity=%220.7%22/><circle cx=%2212%22 cy=%2212%22 r=%223%22 fill=%22none%22 stroke=%22white%22 stroke-width=%221%22/></svg>') 12 12, crosshair;"
@@ -358,7 +358,7 @@
                                     @if($step->payload_json && isset($step->payload_json['practice_items']))
                                         <div class="space-y-3 mt-4">
                                             @foreach($step->payload_json['practice_items'] as $item)
-                                                <div class="p-4 bg-gray-50 rounded-lg">
+                                                <div class="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
                                                     <p class="text-sm text-gray-700">{{ $item['prompt'] ?? $item }}</p>
                                                 </div>
                                             @endforeach
@@ -367,7 +367,7 @@
                                     @break
 
                                 @case('quiz')
-                                    <div class="prose prose-sm max-w-none text-gray-700 mb-4">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300 mb-4">
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
 
@@ -407,8 +407,8 @@
                                                 }
                                             }" class="space-y-6">
                                                 @foreach($quizSet->items as $qi => $item)
-                                                    <div class="p-5 bg-gray-50 rounded-lg border border-gray-200">
-                                                        <p class="text-sm font-medium text-gray-800 mb-3">
+                                                    <div class="p-5 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-200 dark:border-slate-700">
+                                                        <p class="text-sm font-medium text-gray-800 dark:text-white mb-3">
                                                             <span class="inline-flex items-center justify-center w-6 h-6 bg-red-100 text-red-700 rounded-full text-xs font-bold mr-2">{{ $qi + 1 }}</span>
                                                             {{ $item->prompt_text }}
                                                         </p>
@@ -488,7 +488,7 @@
                                     @if($step->payload_json && isset($step->payload_json['questions']))
                                         <div x-data="{ answers: {}, revealed: {} }" class="space-y-6 mt-4">
                                             @foreach($step->payload_json['questions'] as $qi => $question)
-                                                <div class="p-4 bg-gray-50 rounded-lg">
+                                                <div class="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
                                                     <p class="text-sm font-medium text-gray-800 mb-3">{{ $qi + 1 }}. {{ $question['question'] ?? '' }}</p>
                                                     @if(isset($question['options']))
                                                         <div class="space-y-2">
@@ -512,7 +512,7 @@
                                     @break
 
                                 @case('summary')
-                                    <div class="prose prose-sm max-w-none text-gray-700">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300">
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
 
@@ -520,7 +520,7 @@
                                     @if($step->payload_json && isset($step->payload_json['keywords']))
                                         <div class="mt-4 flex flex-wrap gap-2">
                                             @foreach($step->payload_json['keywords'] as $kw)
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600">
                                                     {{ $kw }}
                                                 </span>
                                             @endforeach
@@ -530,13 +530,13 @@
                                     {{-- 관련 한자 카드 목록 --}}
                                     @if($lesson->hanjaChars->isNotEmpty())
                                         <div class="mt-6">
-                                            <h4 class="text-sm font-semibold text-gray-700 mb-3">이번 레슨에서 배운 한자</h4>
+                                            <h4 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-3">이번 레슨에서 배운 한자</h4>
                                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                                 @foreach($lesson->hanjaChars as $hc)
                                                     <a href="{{ route('hanja.show', $hc->slug) }}"
-                                                       class="block p-3 border border-gray-200 rounded-lg text-center hover:border-indigo-300 transition">
-                                                        <div class="text-2xl mb-1">{{ $hc->char_value }}</div>
-                                                        <div class="text-xs text-gray-600">{{ $hc->reading_ko }}</div>
+                                                       class="block p-3 border border-gray-200 dark:border-slate-700 rounded-lg text-center hover:border-indigo-300 transition">
+                                                        <div class="text-2xl mb-1 dark:text-white">{{ $hc->char_value }}</div>
+                                                        <div class="text-xs text-gray-600 dark:text-slate-300">{{ $hc->reading_ko }}</div>
                                                     </a>
                                                 @endforeach
                                             </div>
@@ -545,7 +545,7 @@
                                     @break
 
                                 @default
-                                    <div class="prose prose-sm max-w-none text-gray-700">
+                                    <div class="prose prose-sm max-w-none text-gray-700 dark:text-slate-300">
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
                             @endswitch
@@ -554,15 +554,15 @@
                 @endforeach
 
                 {{-- 네비게이션 버튼 --}}
-                <div class="flex items-center justify-between bg-white shadow-sm sm:rounded-lg p-4">
+                <div class="flex items-center justify-between bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-4">
                     <button @click="currentStep = Math.max(0, currentStep - 1)"
                             x-show="currentStep > 0"
-                            class="inline-flex items-center px-3 py-2 sm:px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                            class="inline-flex items-center px-3 py-2 sm:px-4 border border-gray-300 dark:border-slate-700 text-sm font-medium rounded-md text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition">
                         &larr; 이전
                     </button>
                     <div x-show="currentStep === 0"></div>
 
-                    <span class="text-sm text-gray-400" x-text="(currentStep + 1) + ' / ' + totalSteps"></span>
+                    <span class="text-sm text-gray-400 dark:text-slate-500" x-text="(currentStep + 1) + ' / ' + totalSteps"></span>
 
                     <button @click="currentStep = Math.min(totalSteps - 1, currentStep + 1)"
                             x-show="currentStep < totalSteps - 1"

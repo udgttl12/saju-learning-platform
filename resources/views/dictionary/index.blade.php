@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
             한자 사전
         </h2>
     </x-slot>
@@ -9,11 +9,11 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             {{-- 검색 --}}
-            <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-900/50 p-4 mb-6">
                 <form method="GET" class="flex items-center gap-3">
                     <input type="hidden" name="category" value="{{ $category }}">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="한자, 음, 뜻 검색"
-                           class="rounded-md border-gray-300 shadow-sm text-sm px-3 py-2 flex-1">
+                           class="rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white shadow-sm text-sm px-3 py-2 flex-1">
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">검색</button>
                     @if(request('search'))
                         <a href="{{ route('dictionary.index', ['category' => $category]) }}" class="text-gray-500 text-sm hover:text-gray-700">초기화</a>
@@ -31,12 +31,12 @@
                     'term' => ['label' => '용어', 'count' => $categoryCounts['term'] ?? 0],
                 ];
             @endphp
-            <div class="flex gap-1 mb-6 bg-white rounded-lg shadow p-1.5 overflow-x-auto">
+            <div class="flex gap-1 mb-6 bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-900/50 p-1.5 overflow-x-auto">
                 @foreach($tabs as $key => $tab)
                     @if($key !== 'term' || $tab['count'] > 0)
                     <a href="{{ route('dictionary.index', array_merge(request()->only('search'), ['category' => $key])) }}"
                        class="flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium transition whitespace-nowrap
-                       {{ $category === $key ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                       {{ $category === $key ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700' }}">
                         {{ $tab['label'] }}
                         <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-xs
                             {{ $category === $key ? 'bg-indigo-500 text-indigo-100' : 'bg-gray-200 text-gray-500' }}">
@@ -49,8 +49,8 @@
 
             {{-- 결과 --}}
             @if($hanjaChars->isEmpty())
-                <div class="bg-white rounded-lg shadow p-12 text-center">
-                    <div class="text-gray-400 text-lg">검색 결과가 없습니다.</div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-900/50 p-12 text-center">
+                    <div class="text-gray-400 dark:text-slate-500 text-lg">검색 결과가 없습니다.</div>
                 </div>
             @else
                 @php
@@ -71,10 +71,10 @@
                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                     @foreach($hanjaChars as $hanja)
                     <a href="{{ route('hanja.show', $hanja->slug) }}"
-                       class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md hover:border-indigo-200 transition text-center block group">
-                        <div class="text-4xl font-bold text-gray-900 mb-2 group-hover:text-indigo-700 transition">{{ $hanja->char_value }}</div>
-                        <div class="text-sm font-semibold text-gray-700">{{ $hanja->reading_ko }}</div>
-                        <div class="text-xs text-gray-500 mb-2">{{ $hanja->meaning_ko }}</div>
+                       class="bg-white dark:bg-slate-800 rounded-xl shadow-sm dark:shadow-slate-900/50 border border-gray-100 dark:border-slate-700 p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-500/50 transition text-center block group">
+                        <div class="text-4xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition">{{ $hanja->char_value }}</div>
+                        <div class="text-sm font-semibold text-gray-700 dark:text-slate-300">{{ $hanja->reading_ko }}</div>
+                        <div class="text-xs text-gray-500 dark:text-slate-400 mb-2">{{ $hanja->meaning_ko }}</div>
                         <div class="flex items-center justify-center gap-1.5 flex-wrap">
                             @if($hanja->element && $hanja->element !== 'none')
                                 <span class="text-xs px-2 py-0.5 rounded-full border {{ $elementColors[$hanja->element] ?? '' }}">

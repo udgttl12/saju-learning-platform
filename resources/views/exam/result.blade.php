@@ -3,7 +3,7 @@
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- 점수 카드 --}}
-            <div class="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-slate-900/50 p-8 text-center">
                 @php
                     $grade = $score >= 90 ? ['label' => '훌륭합니다!', 'color' => 'text-emerald-600', 'bg' => 'bg-emerald-50']
                         : ($score >= 70 ? ['label' => '잘 했어요!', 'color' => 'text-blue-600', 'bg' => 'bg-blue-50']
@@ -15,28 +15,28 @@
                     <span class="text-4xl font-bold {{ $grade['color'] }}">{{ $score }}점</span>
                 </div>
                 <h2 class="text-xl font-bold {{ $grade['color'] }}">{{ $grade['label'] }}</h2>
-                <p class="text-gray-500 mt-2">{{ $categoryLabel }} 시험 · {{ $correctCount }}/{{ $total }} 정답</p>
+                <p class="text-gray-500 dark:text-slate-400 mt-2">{{ $categoryLabel }} 시험 · {{ $correctCount }}/{{ $total }} 정답</p>
 
                 @if($total - $correctCount > 0)
-                    <p class="text-sm text-gray-400 mt-1">틀린 {{ $total - $correctCount }}개 한자가 복습 카드에 등록되었습니다.</p>
+                    <p class="text-sm text-gray-400 dark:text-slate-500 mt-1">틀린 {{ $total - $correctCount }}개 한자가 복습 카드에 등록되었습니다.</p>
                 @endif
             </div>
 
             {{-- 문제별 결과 --}}
-            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100">
-                    <h3 class="font-semibold text-gray-800">문제별 결과</h3>
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm dark:shadow-slate-900/50 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 dark:border-slate-700">
+                    <h3 class="font-semibold text-gray-800 dark:text-white">문제별 결과</h3>
                 </div>
-                <div class="divide-y divide-gray-50">
+                <div class="divide-y divide-gray-50 dark:divide-slate-700">
                     @foreach($results as $i => $r)
-                    <div class="px-6 py-4 flex items-center gap-4 {{ $r['is_correct'] ? '' : 'bg-red-50/50' }}">
+                    <div class="px-6 py-4 flex items-center gap-4 {{ $r['is_correct'] ? '' : 'bg-red-50/50 dark:bg-red-500/5' }}">
                         <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
                             {{ $r['is_correct'] ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
                             {{ $i + 1 }}
                         </span>
                         <span class="text-3xl font-serif w-12 text-center">{{ $r['char_value'] }}</span>
                         <div class="flex-1">
-                            <div class="text-sm font-medium text-gray-800">{{ $r['meaning_ko'] }} ({{ $r['reading_ko'] }})</div>
+                            <div class="text-sm font-medium text-gray-800 dark:text-white">{{ $r['meaning_ko'] }} ({{ $r['reading_ko'] }})</div>
                             @if(!$r['is_correct'])
                                 <div class="text-xs text-red-500 mt-0.5">오답</div>
                             @endif
@@ -57,7 +57,7 @@
                     다시 시험보기
                 </a>
                 @if($total - $correctCount > 0)
-                    <a href="{{ route('review.index') }}" class="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition text-center">
+                    <a href="{{ route('review.index') }}" class="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition text-center">
                         복습하러 가기
                     </a>
                 @endif

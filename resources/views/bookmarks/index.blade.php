@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
             즐겨찾기
         </h2>
     </x-slot>
@@ -9,21 +9,21 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm mb-6">
+                <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-lg text-sm mb-6">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if($bookmarks->isEmpty())
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-12 text-center">
-                    <div class="text-gray-400 text-5xl mb-4">&#x2606;</div>
-                    <h3 class="text-lg font-medium text-gray-700 mb-2">즐겨찾기가 비어 있습니다</h3>
-                    <p class="text-sm text-gray-500">한자 카드나 레슨에서 즐겨찾기를 추가해보세요.</p>
+                <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-12 text-center">
+                    <div class="text-gray-400 dark:text-slate-500 text-5xl mb-4">&#x2606;</div>
+                    <h3 class="text-lg font-medium text-gray-700 dark:text-slate-300 mb-2">즐겨찾기가 비어 있습니다</h3>
+                    <p class="text-sm text-gray-500 dark:text-slate-400 dark:text-slate-400">한자 카드나 레슨에서 즐겨찾기를 추가해보세요.</p>
                 </div>
             @else
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($bookmarks as $bookmark)
-                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
                             @if($bookmark->target_type === 'hanja_char' && $bookmark->target)
                                 @php
                                     $hc = $bookmark->target;
@@ -41,11 +41,11 @@
                                         {{ $hc->char_value }}
                                     </div>
                                     <div class="flex-1">
-                                        <a href="{{ route('hanja.show', $hc->slug) }}" class="text-base font-semibold text-gray-800 hover:text-indigo-600 transition">
+                                        <a href="{{ route('hanja.show', $hc->slug) }}" class="text-base font-semibold text-gray-800 dark:text-white hover:text-indigo-600 transition">
                                             {{ $hc->reading_ko }}
                                         </a>
-                                        <p class="text-sm text-gray-500">{{ $hc->meaning_ko }}</p>
-                                        <span class="text-xs text-gray-400">한자</span>
+                                        <p class="text-sm text-gray-500 dark:text-slate-400">{{ $hc->meaning_ko }}</p>
+                                        <span class="text-xs text-gray-400 dark:text-slate-500">한자</span>
                                     </div>
                                     <form action="{{ route('bookmarks.toggle') }}" method="POST">
                                         @csrf
@@ -66,13 +66,13 @@
                                         </svg>
                                     </div>
                                     <div class="flex-1">
-                                        <a href="{{ route('lessons.show', $ls->slug) }}" class="text-base font-semibold text-gray-800 hover:text-indigo-600 transition">
+                                        <a href="{{ route('lessons.show', $ls->slug) }}" class="text-base font-semibold text-gray-800 dark:text-white hover:text-indigo-600 transition">
                                             {{ $ls->title }}
                                         </a>
                                         @if($ls->objective)
-                                            <p class="text-sm text-gray-500 truncate">{{ $ls->objective }}</p>
+                                            <p class="text-sm text-gray-500 dark:text-slate-400 truncate">{{ $ls->objective }}</p>
                                         @endif
-                                        <span class="text-xs text-gray-400">레슨</span>
+                                        <span class="text-xs text-gray-400 dark:text-slate-500">레슨</span>
                                     </div>
                                     <form action="{{ route('bookmarks.toggle') }}" method="POST">
                                         @csrf
@@ -85,7 +85,7 @@
                                 </div>
 
                             @else
-                                <div class="text-sm text-gray-400">삭제된 항목</div>
+                                <div class="text-sm text-gray-400 dark:text-slate-500">삭제된 항목</div>
                             @endif
                         </div>
                     @endforeach

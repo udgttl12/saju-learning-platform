@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
                 한자 카드: {{ $hanja->char_value }}
             </h2>
-            <button onclick="history.back()" class="text-sm text-gray-500 hover:text-gray-700">&larr; 돌아가기</button>
+            <button onclick="history.back()" class="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white">&larr; 돌아가기</button>
         </div>
     </x-slot>
 
@@ -41,8 +41,8 @@
                 <div class="text-7xl sm:text-8xl lg:text-9xl font-serif {{ $colors['text'] }} mb-4 leading-none">{{ $hanja->char_value }}</div>
 
                 {{-- 음독 & 훈독 --}}
-                <div class="text-2xl font-semibold text-gray-800 mb-1">{{ $hanja->reading_ko }}</div>
-                <div class="text-lg text-gray-600 mb-4">{{ $hanja->meaning_ko }}</div>
+                <div class="text-2xl font-semibold text-gray-800 dark:text-white mb-1">{{ $hanja->reading_ko }}</div>
+                <div class="text-lg text-gray-600 dark:text-slate-300 mb-4">{{ $hanja->meaning_ko }}</div>
 
                 {{-- 오행 & 음양 뱃지 --}}
                 <div class="flex items-center justify-center gap-3">
@@ -87,9 +87,9 @@
             </div>
 
             {{-- 직접 써보기 (큰 캔버스 1개) --}}
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">직접 써보기</h3>
-                <p class="text-sm text-gray-600 mb-4">가이드 글자를 따라 직접 써보세요.</p>
+            <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">직접 써보기</h3>
+                <p class="text-sm text-gray-600 dark:text-slate-300 mb-4">가이드 글자를 따라 직접 써보세요.</p>
 
                 <div x-data="{
                     isDrawing: false, strokes: [], currentStroke: [], canvas: null, ctx: null,
@@ -121,7 +121,7 @@
                     undo() { this.strokes.pop(); this.drawGuide(); },
                     clearAll() { this.strokes = []; this.drawGuide(); }
                 }" class="flex flex-col items-center">
-                    <div class="border-2 border-gray-300 rounded-xl overflow-hidden mb-4 bg-white w-full max-w-xs sm:max-w-sm md:max-w-md" style="aspect-ratio:1/1;touch-action:none;">
+                    <div class="border-2 border-gray-300 dark:border-slate-600 rounded-xl overflow-hidden mb-4 bg-white dark:bg-slate-800 w-full max-w-xs sm:max-w-sm md:max-w-md" style="aspect-ratio:1/1;touch-action:none;">
                         <canvas x-ref="mainCanvas" width="400" height="400"
                             class="w-full h-full"
                             style="touch-action:none; cursor: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22><circle cx=%2212%22 cy=%2212%22 r=%224%22 fill=%22%231e293b%22 opacity=%220.7%22/><circle cx=%2212%22 cy=%2212%22 r=%223%22 fill=%22none%22 stroke=%22white%22 stroke-width=%221%22/></svg>') 12 12, crosshair;"
@@ -132,7 +132,7 @@
                         </canvas>
                     </div>
                     <div class="flex gap-3">
-                        <button @click="undo()" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                        <button @click="undo()" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700 dark:text-slate-300 transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a4 4 0 014 4v0a4 4 0 01-4 4H3m0 0l4-4m-4 4l4 4"/></svg>
                             다시 쓰기
                         </button>
@@ -161,7 +161,7 @@
                     <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="showPractice = false; document.body.style.overflow = ''"></div>
 
                     {{-- 모달 본문 --}}
-                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 my-8 z-10"
+                    <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl mx-4 my-8 z-10"
                          @click.stop
                          x-data="{
                             cellCount: 4,
@@ -239,12 +239,12 @@
                          @init-practice.window="initCells()">
 
                         {{-- 모달 헤더 --}}
-                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
                             <div class="flex items-center gap-4">
                                 <span class="text-4xl font-serif {{ $colors['text'] }}">{{ $hanja->char_value }}</span>
                                 <div>
-                                    <div class="font-semibold text-gray-800">{{ $hanja->reading_ko }} · {{ $hanja->meaning_ko }}</div>
-                                    <div class="text-xs text-gray-400">가이드 글자를 따라 반복해서 써보세요</div>
+                                    <div class="font-semibold text-gray-800 dark:text-white">{{ $hanja->reading_ko }} · {{ $hanja->meaning_ko }}</div>
+                                    <div class="text-xs text-gray-400 dark:text-slate-500">가이드 글자를 따라 반복해서 써보세요</div>
                                 </div>
                             </div>
                             <button @click="showPractice = false; document.body.style.overflow = ''"
@@ -254,8 +254,8 @@
                         </div>
 
                         {{-- 컨트롤 바 --}}
-                        <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-50 flex-wrap">
-                            <span class="text-sm text-gray-600">반복 칸 수:</span>
+                        <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-50 dark:border-slate-700 flex-wrap">
+                            <span class="text-sm text-gray-600 dark:text-slate-300">반복 칸 수:</span>
                             <div class="flex gap-1">
                                 <template x-for="n in [2, 4, 6, 8]" :key="n">
                                     <button @click="setCellCount(n)"
@@ -268,9 +268,9 @@
                                 <input type="checkbox" x-model="showGuide"
                                     @change="cells.forEach((_, i) => drawCellGuide(i))"
                                     class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                <span class="text-sm text-gray-600">가이드 표시</span>
+                                <span class="text-sm text-gray-600 dark:text-slate-300">가이드 표시</span>
                             </label>
-                            <button @click="clearAll()" class="ml-auto text-sm text-gray-500 hover:text-red-600 transition">전체 지우기</button>
+                            <button @click="clearAll()" class="ml-auto text-sm text-gray-500 dark:text-slate-400 hover:text-red-600 transition">전체 지우기</button>
                         </div>
 
                         {{-- 노트 그리드 --}}
@@ -279,7 +279,7 @@
                                 <template x-for="(cell, i) in cells" :key="i">
                                     <div class="relative group">
                                         <span class="absolute top-1 left-2 text-xs text-gray-300 font-mono z-10" x-text="i + 1"></span>
-                                        <div class="border-2 border-gray-200 rounded-lg overflow-hidden bg-white aspect-square hover:border-indigo-300 transition" style="touch-action:none;">
+                                        <div class="border-2 border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden bg-white dark:bg-slate-800 aspect-square hover:border-indigo-300 transition" style="touch-action:none;">
                                             <canvas :id="'practiceCell' + i" width="300" height="300"
                                                 class="w-full h-full"
                                                 style="touch-action:none; cursor: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22><circle cx=%2212%22 cy=%2212%22 r=%224%22 fill=%22%231e293b%22 opacity=%220.7%22/><circle cx=%2212%22 cy=%2212%22 r=%223%22 fill=%22none%22 stroke=%22white%22 stroke-width=%221%22/></svg>') 12 12, crosshair;"
@@ -309,47 +309,47 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- 기억법 (Mnemonic) --}}
                 @if($hanja->mnemonic_text)
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">기억법</h3>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $hanja->mnemonic_text }}</p>
+                    <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">기억법</h3>
+                        <p class="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{{ $hanja->mnemonic_text }}</p>
                     </div>
                 @endif
 
                 {{-- 사주에서의 활용 --}}
                 @if($hanja->usage_in_saju)
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">사주에서의 활용</h3>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $hanja->usage_in_saju }}</p>
+                    <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">사주에서의 활용</h3>
+                        <p class="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{{ $hanja->usage_in_saju }}</p>
                     </div>
                 @endif
 
                 {{-- 구조 설명 --}}
                 @if($hanja->structure_note)
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">구조 설명</h3>
-                        <p class="text-sm text-gray-700 leading-relaxed">{{ $hanja->structure_note }}</p>
+                    <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">구조 설명</h3>
+                        <p class="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{{ $hanja->structure_note }}</p>
                     </div>
                 @endif
 
                 {{-- 카테고리 --}}
                 @if($hanja->category)
-                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">카테고리</h3>
-                        <p class="text-sm text-gray-700">{{ $hanja->category }}</p>
+                    <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                        <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">카테고리</h3>
+                        <p class="text-sm text-gray-700 dark:text-slate-300">{{ $hanja->category }}</p>
                     </div>
                 @endif
             </div>
 
             {{-- 관련 레슨 --}}
             @if($hanja->lessons->isNotEmpty())
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">관련 레슨</h3>
+                <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">관련 레슨</h3>
                     <div class="space-y-2">
                         @foreach($hanja->lessons as $lesson)
                             <a href="{{ route('lessons.show', $lesson->slug) }}"
-                               class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-indigo-300 transition">
-                                <span class="text-sm text-gray-800">{{ $lesson->title }}</span>
-                                <span class="text-xs text-gray-400">&rarr;</span>
+                               class="flex items-center justify-between p-3 border border-gray-200 dark:border-slate-700 rounded-lg hover:border-indigo-300 transition">
+                                <span class="text-sm text-gray-800 dark:text-white">{{ $lesson->title }}</span>
+                                <span class="text-xs text-gray-400 dark:text-slate-500">&rarr;</span>
                             </a>
                         @endforeach
                     </div>
@@ -358,11 +358,11 @@
 
             {{-- 관련 그룹 --}}
             @if($hanja->groups->isNotEmpty())
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">소속 한자 그룹</h3>
+                <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-4">소속 한자 그룹</h3>
                     <div class="flex flex-wrap gap-2">
                         @foreach($hanja->groups as $group)
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300">
                                 {{ $group->title ?? $group->name ?? $group->code }}
                             </span>
                         @endforeach

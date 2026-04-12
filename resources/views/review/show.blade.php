@@ -1,19 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
             복습 카드
         </h2>
     </x-slot>
 
     <div class="py-8">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white rounded-lg shadow p-8" x-data="{ revealed: false }">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-900/50 p-8" x-data="{ revealed: false }">
                 {{-- Front: Question --}}
                 <div class="text-center mb-8">
-                    <div class="text-7xl font-bold text-gray-900 mb-4">
+                    <div class="text-7xl font-bold text-gray-900 dark:text-white mb-4">
                         {{ $card->hanjaChar?->char_value }}
                     </div>
-                    <p class="text-sm text-gray-400">이 한자의 음과 뜻을 떠올려 보세요</p>
+                    <p class="text-sm text-gray-400 dark:text-slate-500">이 한자의 음과 뜻을 떠올려 보세요</p>
                 </div>
 
                 {{-- Reveal button --}}
@@ -24,15 +24,15 @@
                 </div>
 
                 {{-- Back: Answer --}}
-                <div x-show="revealed" x-transition class="border-t border-gray-200 pt-6">
+                <div x-show="revealed" x-transition class="border-t border-gray-200 dark:border-slate-700 pt-6">
                     <div class="text-center mb-6">
-                        <div class="text-lg font-medium text-gray-900">{{ $card->hanjaChar?->reading_ko }}</div>
-                        <div class="text-gray-600">{{ $card->hanjaChar?->meaning_ko }}</div>
+                        <div class="text-lg font-medium text-gray-900 dark:text-white">{{ $card->hanjaChar?->reading_ko }}</div>
+                        <div class="text-gray-600 dark:text-slate-300">{{ $card->hanjaChar?->meaning_ko }}</div>
                         @if($card->hanjaChar?->mnemonic_text)
-                            <p class="mt-2 text-sm text-gray-500 italic">{{ $card->hanjaChar->mnemonic_text }}</p>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-slate-400 italic">{{ $card->hanjaChar->mnemonic_text }}</p>
                         @endif
                         @if($card->hanjaChar?->usage_in_saju)
-                            <p class="mt-2 text-sm text-gray-500">사주 활용: {{ $card->hanjaChar->usage_in_saju }}</p>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-slate-400">사주 활용: {{ $card->hanjaChar->usage_in_saju }}</p>
                         @endif
                     </div>
 
@@ -71,7 +71,7 @@
             </div>
 
             <div class="mt-4 text-center">
-                <a href="{{ route('review.index') }}" class="text-sm text-gray-500 hover:text-gray-700">복습 목록으로</a>
+                <a href="{{ route('review.index') }}" class="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white">복습 목록으로</a>
             </div>
         </div>
     </div>

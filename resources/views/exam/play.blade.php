@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="bg-slate-900 min-h-screen pb-16">
+    <div class="min-h-screen pb-16">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 pt-8">
 
             <div x-data="{
@@ -32,16 +32,16 @@
                 }
             }">
                 {{-- 헤더 --}}
-                <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 mb-4">
+                <div class="bg-white dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl p-4 mb-4">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-semibold text-amber-400">{{ $categoryLabel }} 시험</span>
+                        <span class="text-sm font-semibold text-amber-600 dark:text-amber-400">{{ $categoryLabel }} 시험</span>
                         <div class="flex items-center gap-3 text-sm">
                             <span class="text-emerald-400 font-semibold"><span x-text="correctCount"></span>맞음</span>
                             <span class="text-red-400 font-semibold"><span x-text="Object.keys(submitted).length - correctCount"></span>틀림</span>
-                            <span class="text-slate-500"><span x-text="Object.keys(submitted).length"></span>/<span x-text="total"></span></span>
+                            <span class="text-gray-500 dark:text-slate-500"><span x-text="Object.keys(submitted).length"></span>/<span x-text="total"></span></span>
                         </div>
                     </div>
-                    <div class="w-full bg-slate-700 rounded-full h-3 flex overflow-hidden">
+                    <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 flex overflow-hidden">
                         <div class="bg-emerald-500 h-3 transition-all duration-300"
                              :style="'width:' + (correctCount / total * 100) + '%'"></div>
                         <div class="bg-red-400 h-3 transition-all duration-300"
@@ -51,12 +51,12 @@
 
                 {{-- 문제 카드 --}}
                 <template x-for="(q, qi) in questions" :key="qi">
-                    <div x-show="current === qi" class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden">
+                    <div x-show="current === qi" class="bg-white dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
                         {{-- 문제 번호 + 한자 --}}
-                        <div class="p-8 text-center border-b border-white/10">
-                            <span class="text-xs text-slate-500" x-text="'Q' + (qi + 1)"></span>
-                            <div class="text-6xl sm:text-8xl md:text-9xl font-serif text-white my-6" x-text="q.char_value"></div>
-                            <p class="text-slate-400">이 한자의 뜻은?</p>
+                        <div class="p-8 text-center border-b border-gray-200 dark:border-white/10">
+                            <span class="text-xs text-gray-500 dark:text-slate-500" x-text="'Q' + (qi + 1)"></span>
+                            <div class="text-6xl sm:text-8xl md:text-9xl font-serif text-gray-900 dark:text-white my-6" x-text="q.char_value"></div>
+                            <p class="text-gray-600 dark:text-slate-400">이 한자의 뜻은?</p>
                         </div>
 
                         {{-- 선택지 --}}
@@ -67,15 +67,15 @@
                                     :class="{
                                         'border-emerald-500 bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/30': isCorrectChoice(qi, choice.id),
                                         'border-red-500 bg-red-500/20 text-red-400 ring-2 ring-red-500/30': isWrongChoice(qi, choice.id),
-                                        'border-white/10 hover:border-amber-400/50 hover:bg-white/10 cursor-pointer text-slate-200': !submitted[qi],
-                                        'border-white/5 text-slate-600 opacity-50': submitted[qi] && !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
+                                        'border-gray-200 dark:border-white/10 hover:border-amber-400/50 hover:bg-gray-50 dark:hover:bg-white/10 cursor-pointer text-gray-800 dark:text-slate-200': !submitted[qi],
+                                        'border-gray-100 dark:border-white/5 text-gray-400 dark:text-slate-600 opacity-50': submitted[qi] && !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
                                     }"
-                                    class="w-full text-left px-4 py-3 sm:px-5 sm:py-4 border-2 rounded-xl transition-all duration-150 flex items-center gap-3 bg-white/5">
+                                    class="w-full text-left px-4 py-3 sm:px-5 sm:py-4 border-2 rounded-xl transition-all duration-150 flex items-center gap-3 bg-white dark:bg-white/5">
                                     <span class="flex-shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all"
                                         :class="{
                                             'border-emerald-500 bg-emerald-500 text-white': isCorrectChoice(qi, choice.id),
                                             'border-red-500 bg-red-500 text-white': isWrongChoice(qi, choice.id),
-                                            'border-slate-600 text-slate-400': !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
+                                            'border-gray-400 dark:border-slate-600 text-gray-500 dark:text-slate-400': !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
                                         }"
                                         x-text="['A','B','C','D'][ci]"></span>
                                     <span class="flex-1 font-medium" x-text="choice.text"></span>
@@ -91,8 +91,8 @@
 
                         {{-- 정답 해설 --}}
                         <div x-show="submitted[qi] && !isCorrectChoice(qi, answers[qi])" x-cloak
-                            class="mx-6 mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-                            <p class="text-sm text-amber-400">
+                            class="mx-6 mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-xl">
+                            <p class="text-sm text-amber-700 dark:text-amber-400">
                                 <strong x-text="q.char_value"></strong>의 뜻은
                                 <strong x-text="q.meaning_ko + ' (' + q.reading_ko + ')'"></strong>입니다.
                             </p>
@@ -103,7 +103,7 @@
                 {{-- 네비게이션 --}}
                 <div class="flex items-center justify-between mt-4">
                     <button @click="prev()" x-show="current > 0"
-                        class="px-5 py-2.5 border border-white/10 rounded-xl text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-slate-200 transition">
+                        class="px-5 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-800 dark:hover:text-slate-200 transition">
                         &larr; 이전
                     </button>
                     <div x-show="current === 0"></div>
@@ -117,7 +117,7 @@
                                     'bg-emerald-500 text-white': submitted[qi] && answers[qi] === q.correct_id,
                                     'bg-red-500 text-white': submitted[qi] && answers[qi] !== q.correct_id,
                                     'bg-amber-500 text-white ring-2 ring-amber-400/50 scale-110': current === qi && !submitted[qi],
-                                    'bg-slate-700 text-slate-400 hover:bg-slate-600': current !== qi && !submitted[qi],
+                                    'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-400 hover:bg-gray-300 dark:hover:bg-slate-600': current !== qi && !submitted[qi],
                                 }"
                                 x-text="qi + 1"></button>
                         </template>

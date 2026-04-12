@@ -2,12 +2,12 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-gray-800 dark:text-white leading-tight">
                     {{ $track->title }}
                 </h2>
-                <p class="text-sm text-gray-500 mt-1">{{ $track->short_description }}</p>
+                <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">{{ $track->short_description }}</p>
             </div>
-            <a href="{{ route('tracks.index') }}" class="text-sm text-gray-500 hover:text-gray-700">&larr; 트랙 목록</a>
+            <a href="{{ route('tracks.index') }}" class="text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white">&larr; 트랙 목록</a>
         </div>
     </x-slot>
 
@@ -16,21 +16,21 @@
 
             {{-- 플래시 메시지 --}}
             @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">
+                <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-lg text-sm">
                     {{ session('success') }}
                 </div>
             @endif
             @if(session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
                     {{ session('error') }}
                 </div>
             @endif
 
             {{-- 트랙 정보 카드 --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="space-y-2">
-                        <div class="flex items-center gap-3 text-sm text-gray-500">
+                        <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-slate-400">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 {{ $track->difficulty_level <= 1 ? 'bg-green-100 text-green-700' : '' }}
                                 {{ $track->difficulty_level == 2 ? 'bg-yellow-100 text-yellow-700' : '' }}
@@ -47,15 +47,15 @@
                             @endif
                         </div>
                         @if($track->target_audience)
-                            <p class="text-sm text-gray-600">대상: {{ $track->target_audience }}</p>
+                            <p class="text-sm text-gray-600 dark:text-slate-300">대상: {{ $track->target_audience }}</p>
                         @endif
                     </div>
 
                     @auth
                         @if($enrollment)
                             <div class="text-right">
-                                <div class="text-sm text-gray-500 mb-1">진행률 {{ number_format($enrollment->progress_percent, 0) }}%</div>
-                                <div class="w-48 bg-gray-200 rounded-full h-2.5">
+                                <div class="text-sm text-gray-500 dark:text-slate-400 mb-1">진행률 {{ number_format($enrollment->progress_percent, 0) }}%</div>
+                                <div class="w-48 bg-gray-200 dark:bg-slate-700 rounded-full h-2.5">
                                     <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ $enrollment->progress_percent }}%"></div>
                                 </div>
                             </div>
@@ -78,8 +78,8 @@
             </div>
 
             {{-- 레슨 목록 --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">레슨 목록</h3>
+            <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">레슨 목록</h3>
                 <div class="space-y-3">
                     @foreach($track->lessons as $index => $lesson)
                         @php
@@ -97,9 +97,9 @@
 
                         @if(!$isLocked && $enrollment)
                         <a href="{{ route('lessons.show', $lesson->slug) }}"
-                           class="flex items-center border border-gray-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-sm transition-all cursor-pointer group">
+                           class="flex items-center border border-gray-200 dark:border-slate-700 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-slate-700/50 hover:shadow-sm transition-all cursor-pointer group">
                         @else
-                        <div class="flex items-center border border-gray-200 rounded-lg p-4 {{ $isLocked ? 'opacity-50' : '' }} transition">
+                        <div class="flex items-center border border-gray-200 dark:border-slate-700 rounded-lg p-4 {{ $isLocked ? 'opacity-50' : '' }} transition">
                         @endif
                             {{-- 번호 / 상태 아이콘 --}}
                             <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4
@@ -119,14 +119,14 @@
 
                             {{-- 레슨 정보 --}}
                             <div class="flex-1 min-w-0">
-                                <span class="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition">{{ $lesson->title }}</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 transition">{{ $lesson->title }}</span>
                                 @if($lesson->objective)
-                                    <p class="text-xs text-gray-500 mt-0.5 truncate">{{ $lesson->objective }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{{ $lesson->objective }}</p>
                                 @endif
                             </div>
 
                             {{-- 메타 + 화살표 --}}
-                            <div class="flex-shrink-0 flex items-center gap-3 text-xs text-gray-400 ml-4">
+                            <div class="flex-shrink-0 flex items-center gap-3 text-xs text-gray-400 dark:text-slate-500 ml-4">
                                 @if($lesson->estimated_minutes)
                                     <span>{{ $lesson->estimated_minutes }}분</span>
                                 @endif

@@ -24,7 +24,7 @@
 @endphp
 
 <x-app-layout>
-    <div class="bg-slate-900 min-h-screen pb-16">
+    <div class="min-h-screen pb-16">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 pt-8">
             {{-- 타이틀 --}}
             <div class="text-center mb-8">
@@ -35,9 +35,9 @@
 
             {{-- Info --}}
             @if($example->description)
-                <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-6">
-                    <p class="text-slate-300">{{ $example->description }}</p>
-                    <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                <div class="bg-white dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl p-6 mb-6">
+                    <p class="text-gray-700 dark:text-slate-300">{{ $example->description }}</p>
+                    <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-slate-500">
                         @if($example->gender)
                             <span>{{ $example->gender === 'M' ? '남성' : '여성' }}</span>
                         @endif
@@ -52,8 +52,8 @@
             @endif
 
             {{-- Saju Chart (8 characters table) --}}
-            <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 mb-6">
-                <h3 class="text-lg font-semibold text-slate-200 mb-8 text-center tracking-wide">사주 팔자</h3>
+            <div class="bg-white dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl p-8 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-slate-200 mb-8 text-center tracking-wide">사주 팔자</h3>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-2xl mx-auto">
                     @foreach(['hour' => '시주', 'day' => '일주', 'month' => '월주', 'year' => '연주'] as $key => $label)
@@ -67,19 +67,19 @@
                         $isDayStem = ($key === 'day');
                     @endphp
                     <div class="text-center">
-                        <div class="text-xs text-slate-500 mb-3 font-medium tracking-wider uppercase">{{ $label }}</div>
+                        <div class="text-xs text-gray-500 dark:text-slate-500 mb-3 font-medium tracking-wider uppercase">{{ $label }}</div>
                         {{-- Stem (Heavenly) --}}
                         <div class="border-2 {{ $stemColor['border'] }} {{ $stemColor['bg'] }} rounded-xl p-4 mb-3 transition-all hover:scale-105
                             {{ $isDayStem ? 'ring-2 ring-amber-400/50 shadow-lg shadow-amber-400/20' : '' }}"
                              title="{{ $stemEl ? ['wood'=>'목(木)', 'fire'=>'화(火)', 'earth'=>'토(土)', 'metal'=>'금(金)', 'water'=>'수(水)'][$stemEl] : '' }}">
                             <div class="text-3xl sm:text-4xl lg:text-5xl font-bold {{ $isDayStem ? 'text-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]' : $stemColor['text'] }}">{{ $stem }}</div>
-                            <div class="text-[10px] text-slate-500 mt-2">천간{{ $isDayStem ? ' (일간)' : '' }}</div>
+                            <div class="text-[10px] text-gray-500 dark:text-slate-500 mt-2">천간{{ $isDayStem ? ' (일간)' : '' }}</div>
                         </div>
                         {{-- Branch (Earthly) --}}
                         <div class="border-2 {{ $branchColor['border'] }} {{ $branchColor['bg'] }} rounded-xl p-4 transition-all hover:scale-105"
                              title="{{ $branchEl ? ['wood'=>'목(木)', 'fire'=>'화(火)', 'earth'=>'토(土)', 'metal'=>'금(金)', 'water'=>'수(水)'][$branchEl] : '' }}">
                             <div class="text-3xl sm:text-4xl lg:text-5xl font-bold {{ $branchColor['text'] }}">{{ $branch }}</div>
-                            <div class="text-[10px] text-slate-500 mt-2">지지</div>
+                            <div class="text-[10px] text-gray-500 dark:text-slate-500 mt-2">지지</div>
                         </div>
                     </div>
                     @endforeach
@@ -103,7 +103,7 @@
             </div>
 
             <div class="text-center">
-                <a href="{{ route('lab.index') }}" class="text-sm text-slate-500 hover:text-amber-400 transition-colors">&larr; 목록으로 돌아가기</a>
+                <a href="{{ route('lab.index') }}" class="text-sm text-gray-500 dark:text-slate-500 hover:text-amber-400 transition-colors">&larr; 목록으로 돌아가기</a>
             </div>
         </div>
     </div>
