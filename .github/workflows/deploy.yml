@@ -116,15 +116,15 @@ jobs:
           ln -sfn "${RELEASE_DIR}" "${DEPLOY_BASE}/current"
 
           # 권한/SELinux
-          setfacl -R -m u:apache:rwx \
+          sudo setfacl -R -m u:apache:rwx \
             "${DEPLOY_BASE}/shared/storage" \
             "${DEPLOY_BASE}/shared/database" \
             "${DEPLOY_BASE}/current/bootstrap/cache"
-          setfacl -R -d -m u:apache:rwx \
+          sudo setfacl -R -d -m u:apache:rwx \
             "${DEPLOY_BASE}/shared/storage" \
             "${DEPLOY_BASE}/shared/database" \
             "${DEPLOY_BASE}/current/bootstrap/cache"
-          chcon -R -t httpd_sys_rw_content_t \
+          sudo chcon -R -t httpd_sys_rw_content_t \
             "${DEPLOY_BASE}/shared/storage" \
             "${DEPLOY_BASE}/shared/database" \
             "${DEPLOY_BASE}/current/bootstrap/cache" || true
@@ -162,11 +162,11 @@ jobs:
           PREV=$(ls -1dt /var/www/php/saju_learning/releases/*/ | sed -n '2p' | sed 's:/$::')
           if [ -n "$PREV" ]; then
             ln -sfn "$PREV" /var/www/php/saju_learning/current
-            setfacl -R -m u:apache:rwx \
+            sudo setfacl -R -m u:apache:rwx \
               /var/www/php/saju_learning/shared/storage \
               /var/www/php/saju_learning/shared/database \
               /var/www/php/saju_learning/current/bootstrap/cache
-            chcon -R -t httpd_sys_rw_content_t \
+            sudo chcon -R -t httpd_sys_rw_content_t \
               /var/www/php/saju_learning/shared/storage \
               /var/www/php/saju_learning/shared/database \
               /var/www/php/saju_learning/current/bootstrap/cache || true
