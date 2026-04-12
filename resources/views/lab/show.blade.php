@@ -54,7 +54,7 @@
             <div class="bg-white rounded-lg shadow p-8 mb-6">
                 <h3 class="text-lg font-medium text-gray-900 mb-6 text-center">사주 팔자</h3>
 
-                <div class="grid grid-cols-4 gap-4 max-w-lg mx-auto">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-lg mx-auto">
                     @foreach(['hour' => '시주', 'day' => '일주', 'month' => '월주', 'year' => '연주'] as $key => $label)
                     @php
                         $stem = $pillars[$key]['stem'];
@@ -69,13 +69,13 @@
                         {{-- Stem (Heavenly) --}}
                         <div class="border-2 {{ $stemColor['border'] }} {{ $stemColor['bg'] }} rounded-lg p-3 mb-2 cursor-pointer hover:shadow-md transition-shadow"
                              title="{{ $stemEl ? ['wood'=>'목(木)', 'fire'=>'화(火)', 'earth'=>'토(土)', 'metal'=>'금(金)', 'water'=>'수(水)'][$stemEl] : '' }}">
-                            <div class="text-3xl font-bold {{ $stemColor['text'] }}">{{ $stem }}</div>
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-bold {{ $stemColor['text'] }}">{{ $stem }}</div>
                             <div class="text-xs text-gray-500 mt-1">천간</div>
                         </div>
                         {{-- Branch (Earthly) --}}
                         <div class="border-2 {{ $branchColor['border'] }} {{ $branchColor['bg'] }} rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow"
                              title="{{ $branchEl ? ['wood'=>'목(木)', 'fire'=>'화(火)', 'earth'=>'토(土)', 'metal'=>'금(金)', 'water'=>'수(水)'][$branchEl] : '' }}">
-                            <div class="text-3xl font-bold {{ $branchColor['text'] }}">{{ $branch }}</div>
+                            <div class="text-2xl sm:text-3xl lg:text-4xl font-bold {{ $branchColor['text'] }}">{{ $branch }}</div>
                             <div class="text-xs text-gray-500 mt-1">지지</div>
                         </div>
                     </div>

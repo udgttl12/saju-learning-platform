@@ -38,7 +38,7 @@
 
             <div class="{{ $colors['bg'] }} {{ $colors['border'] }} border-2 rounded-2xl p-8 text-center">
                 {{-- 큰 한자 글자 --}}
-                <div class="text-9xl font-serif {{ $colors['text'] }} mb-4 leading-none">{{ $hanja->char_value }}</div>
+                <div class="text-7xl sm:text-8xl lg:text-9xl font-serif {{ $colors['text'] }} mb-4 leading-none">{{ $hanja->char_value }}</div>
 
                 {{-- 음독 & 훈독 --}}
                 <div class="text-2xl font-semibold text-gray-800 mb-1">{{ $hanja->reading_ko }}</div>
@@ -121,7 +121,7 @@
                     undo() { this.strokes.pop(); this.drawGuide(); },
                     clearAll() { this.strokes = []; this.drawGuide(); }
                 }" class="flex flex-col items-center">
-                    <div class="border-2 border-gray-300 rounded-xl overflow-hidden mb-4 bg-white" style="width:100%;max-width:400px;aspect-ratio:1/1;touch-action:none;">
+                    <div class="border-2 border-gray-300 rounded-xl overflow-hidden mb-4 bg-white w-full max-w-xs sm:max-w-sm md:max-w-md" style="aspect-ratio:1/1;touch-action:none;">
                         <canvas x-ref="mainCanvas" width="400" height="400"
                             class="w-full h-full"
                             style="touch-action:none; cursor: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22><circle cx=%2212%22 cy=%2212%22 r=%224%22 fill=%22%231e293b%22 opacity=%220.7%22/><circle cx=%2212%22 cy=%2212%22 r=%223%22 fill=%22none%22 stroke=%22white%22 stroke-width=%221%22/></svg>') 12 12, crosshair;"

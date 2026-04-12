@@ -82,7 +82,7 @@
                         </div>
 
                         {{-- Step 본문 --}}
-                        <div class="px-6 py-6">
+                        <div class="px-4 py-4 sm:px-6 sm:py-6">
                             @switch($step->step_type)
                                 @case('intro')
                                     <div class="prose prose-sm max-w-none text-gray-700">
@@ -327,7 +327,7 @@
                                                 <button @click="clearAll()" class="ml-auto text-sm text-gray-500 hover:text-red-600 transition">전체 지우기</button>
                                             </div>
                                             {{-- 노트 그리드 --}}
-                                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                                                 <template x-for="(cell, i) in cells" :key="i">
                                                     <div class="relative group">
                                                         <span class="absolute top-1 left-2 text-xs text-gray-300 font-mono z-10" x-text="i + 1"></span>
@@ -557,7 +557,7 @@
                 <div class="flex items-center justify-between bg-white shadow-sm sm:rounded-lg p-4">
                     <button @click="currentStep = Math.max(0, currentStep - 1)"
                             x-show="currentStep > 0"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
+                            class="inline-flex items-center px-3 py-2 sm:px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                         &larr; 이전
                     </button>
                     <div x-show="currentStep === 0"></div>
@@ -566,7 +566,7 @@
 
                     <button @click="currentStep = Math.min(totalSteps - 1, currentStep + 1)"
                             x-show="currentStep < totalSteps - 1"
-                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                            class="inline-flex items-center px-3 py-2 sm:px-4 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
                         다음 &rarr;
                     </button>
 

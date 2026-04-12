@@ -55,7 +55,7 @@
                         {{-- 문제 번호 + 한자 --}}
                         <div class="p-8 text-center border-b border-gray-100">
                             <span class="text-xs text-gray-400" x-text="'Q' + (qi + 1)"></span>
-                            <div class="text-8xl sm:text-9xl font-serif text-gray-800 my-6" x-text="q.char_value"></div>
+                            <div class="text-6xl sm:text-8xl md:text-9xl font-serif text-gray-800 my-6" x-text="q.char_value"></div>
                             <p class="text-gray-500">이 한자의 뜻은?</p>
                         </div>
 
@@ -70,7 +70,7 @@
                                         'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 hover:shadow-md active:bg-indigo-100 cursor-pointer': !submitted[qi],
                                         'border-gray-100 text-gray-400 opacity-60': submitted[qi] && !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
                                     }"
-                                    class="w-full text-left px-5 py-4 border-2 rounded-xl transition-all duration-150 flex items-center gap-3">
+                                    class="w-full text-left px-4 py-3 sm:px-5 sm:py-4 border-2 rounded-xl transition-all duration-150 flex items-center gap-3">
                                     <span class="flex-shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all"
                                         :class="{
                                             'border-emerald-500 bg-emerald-500 text-white': isCorrectChoice(qi, choice.id),
@@ -109,7 +109,7 @@
                     <div x-show="current === 0"></div>
 
                     {{-- 문제 번호 칸 --}}
-                    <div class="flex gap-1 flex-wrap justify-center">
+                    <div class="grid grid-cols-5 sm:grid-cols-10 gap-1 justify-center">
                         <template x-for="(q, qi) in questions" :key="'dot'+qi">
                             <button @click="current = qi"
                                 class="w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center"

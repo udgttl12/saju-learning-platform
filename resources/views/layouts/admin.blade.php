@@ -13,9 +13,15 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 flex">
+        <div class="min-h-screen bg-gray-100 flex" x-data="{ sidebarOpen: false }">
+            {{-- Mobile Overlay --}}
+            <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
+                 class="fixed inset-0 bg-black/50 z-30 md:hidden" x-cloak></div>
+
             {{-- Sidebar --}}
-            <aside class="w-64 bg-gray-900 text-gray-100 min-h-screen flex-shrink-0">
+            <aside class="w-64 bg-gray-900 text-gray-100 min-h-screen flex-shrink-0 fixed inset-y-0 left-0 z-40 transform -translate-x-full transition-transform duration-200 md:relative md:translate-x-0"
+                   :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'"
+                   x-cloak>
                 <div class="p-4 border-b border-gray-700">
                     <a href="{{ route('admin.dashboard') }}" class="text-xl font-bold text-white">
                         관리자 패널
@@ -73,6 +79,10 @@
                 {{-- Top Bar --}}
                 <header class="bg-white shadow-sm border-b border-gray-200">
                     <div class="px-6 py-4 flex items-center justify-between">
+                        {{-- Hamburger (mobile only) --}}
+                        <button @click="sidebarOpen = !sidebarOpen" class="md:hidden mr-3 p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </button>
                         <h1 class="text-lg font-semibold text-gray-800">
                             @yield('title', '관리자')
                         </h1>
