@@ -9,7 +9,8 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($tracks as $track)
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md transition-shadow">
+                    <a href="{{ route('tracks.show', $track->slug) }}"
+                       class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-md hover:border-indigo-200 border border-transparent transition-all group">
                         <div class="p-6">
                             {{-- 난이도 뱃지 --}}
                             <div class="flex items-center justify-between mb-3">
@@ -29,10 +30,8 @@
                             </div>
 
                             {{-- 트랙 제목 --}}
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                                <a href="{{ route('tracks.show', $track->slug) }}" class="hover:text-indigo-600 transition">
-                                    {{ $track->title }}
-                                </a>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-indigo-600 transition">
+                                {{ $track->title }}
                             </h3>
 
                             {{-- 설명 --}}
@@ -46,20 +45,15 @@
                                 @if($track->estimated_total_minutes)
                                     <span>약 {{ $track->estimated_total_minutes }}분</span>
                                 @endif
-                                @if($track->target_audience)
-                                    <span>{{ $track->target_audience }}</span>
-                                @endif
                             </div>
 
-                            {{-- 상세 링크 --}}
-                            <div class="mt-4">
-                                <a href="{{ route('tracks.show', $track->slug) }}"
-                                   class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition">
-                                    자세히 보기 &rarr;
-                                </a>
+                            {{-- 화살표 --}}
+                            <div class="mt-4 flex items-center text-sm font-medium text-indigo-600 group-hover:text-indigo-800 transition">
+                                자세히 보기
+                                <svg class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 @empty
                     <div class="col-span-full text-center py-12">
                         <p class="text-gray-500">아직 공개된 학습 트랙이 없습니다.</p>

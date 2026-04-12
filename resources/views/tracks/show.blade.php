@@ -95,7 +95,12 @@
                             }
                         @endphp
 
-                        <div class="flex items-center border border-gray-200 rounded-lg p-4 {{ $isLocked ? 'opacity-50' : 'hover:border-indigo-300' }} transition">
+                        @if(!$isLocked && $enrollment)
+                        <a href="{{ route('lessons.show', $lesson->slug) }}"
+                           class="flex items-center border border-gray-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-sm transition-all cursor-pointer group">
+                        @else
+                        <div class="flex items-center border border-gray-200 rounded-lg p-4 {{ $isLocked ? 'opacity-50' : '' }} transition">
+                        @endif
                             {{-- 번호 / 상태 아이콘 --}}
                             <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-4
                                 {{ $isCompleted ? 'bg-emerald-100 text-emerald-600' : ($isLocked ? 'bg-gray-100 text-gray-400' : 'bg-indigo-100 text-indigo-600') }}">
@@ -114,28 +119,26 @@
 
                             {{-- 레슨 정보 --}}
                             <div class="flex-1 min-w-0">
-                                @if(!$isLocked && $enrollment)
-                                    <a href="{{ route('lessons.show', $lesson->slug) }}" class="text-sm font-medium text-gray-900 hover:text-indigo-600 transition">
-                                        {{ $lesson->title }}
-                                    </a>
-                                @else
-                                    <span class="text-sm font-medium text-gray-900">{{ $lesson->title }}</span>
-                                @endif
+                                <span class="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition">{{ $lesson->title }}</span>
                                 @if($lesson->objective)
                                     <p class="text-xs text-gray-500 mt-0.5 truncate">{{ $lesson->objective }}</p>
                                 @endif
                             </div>
 
-                            {{-- 메타 --}}
+                            {{-- 메타 + 화살표 --}}
                             <div class="flex-shrink-0 flex items-center gap-3 text-xs text-gray-400 ml-4">
                                 @if($lesson->estimated_minutes)
                                     <span>{{ $lesson->estimated_minutes }}분</span>
                                 @endif
-                                @if($lesson->lesson_type)
-                                    <span class="capitalize">{{ $lesson->lesson_type }}</span>
+                                @if(!$isLocked && $enrollment)
+                                    <svg class="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 @endif
                             </div>
+                        @if(!$isLocked && $enrollment)
+                        </a>
+                        @else
                         </div>
+                        @endif
                     @endforeach
                 </div>
             </div>
