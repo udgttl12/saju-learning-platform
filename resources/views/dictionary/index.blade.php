@@ -12,10 +12,18 @@
                 <form method="GET" class="flex flex-wrap items-center gap-3">
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="한자, 음, 뜻 검색"
                            class="rounded-md border-gray-300 shadow-sm text-sm px-3 py-2 flex-1 min-w-48">
+                    @php
+                        $categoryLabels = [
+                            'five_elements' => '오행',
+                            'heavenly_stems' => '천간',
+                            'earthly_branches' => '지지',
+                            'term' => '용어',
+                        ];
+                    @endphp
                     <select name="category" class="rounded-md border-gray-300 shadow-sm text-sm px-3 py-2">
                         <option value="">전체 카테고리</option>
                         @foreach($categories as $cat)
-                            <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                            <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $categoryLabels[$cat] ?? $cat }}</option>
                         @endforeach
                     </select>
                     <select name="element" class="rounded-md border-gray-300 shadow-sm text-sm px-3 py-2">
