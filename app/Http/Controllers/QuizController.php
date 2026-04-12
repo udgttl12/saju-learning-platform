@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Services\QuizService;
+use App\Services\ReviewService;
 use Illuminate\Http\Request;
 
 class QuizController extends Controller
 {
     public function __construct(
-        private QuizService $quizService
+        private QuizService $quizService,
+        private ReviewService $reviewService,
     ) {}
 
     public function show(string $code)
@@ -28,6 +30,8 @@ class QuizController extends Controller
 
         $results = $this->quizService->gradeSubmission($quizSet, $request->answers);
         $score = $this->quizService->calculateScore($results);
+
+        $this->reviewService->createFromQuizResult($request->user(), $results, $quizSet);
 
         session()->put("quiz_result_{$code}", [
             'results' => $results,

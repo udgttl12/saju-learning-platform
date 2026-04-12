@@ -31,6 +31,7 @@ class QuizService
                 'explanation' => $item->explanation_text,
                 'points' => $item->points,
                 'earned' => $correct ? $item->points : 0,
+                'target_hanja_char_id' => $item->target_hanja_char_id,
             ];
         }
 

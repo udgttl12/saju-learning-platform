@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\QuizSet;
 use App\Models\ReviewCard;
 use App\Models\ReviewLog;
 use App\Models\User;
@@ -16,6 +17,43 @@ class ReviewService
             ->with('hanjaChar')
             ->orderBy('due_at')
             ->get();
+    }
+
+    public function createFromQuizResult(User $user, array $results, QuizSet $quizSet): int
+    {
+        $created = 0;
+
+        foreach ($results as $result) {
+            if ($result['correct'] || empty($result['target_hanja_char_id'])) {
+                continue;
+            }
+
+            $card = ReviewCard::where('user_id', $user->id)
+                ->where('hanja_char_id', $result['target_hanja_char_id'])
+                ->first();
+
+            if ($card) {
+                $card->update([
+                    'due_at' => Carbon::now(),
+                    'stage' => $card->stage === 'mastered' ? 'lapsed' : $card->stage,
+                ]);
+            } else {
+                ReviewCard::create([
+                    'user_id' => $user->id,
+                    'hanja_char_id' => $result['target_hanja_char_id'],
+                    'source_type' => 'quiz',
+                    'source_id' => $quizSet->id,
+                    'stage' => 'new',
+                    'ease_factor' => 2.50,
+                    'interval_days' => 0,
+                    'repetitions' => 0,
+                    'due_at' => Carbon::now(),
+                ]);
+                $created++;
+            }
+        }
+
+        return $created;
     }
 
     public function processAnswer(ReviewCard $card, string $result): ReviewCard
