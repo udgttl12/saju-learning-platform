@@ -86,13 +86,71 @@
                 @endauth
             </div>
 
-            {{-- 연습하기 버튼 --}}
+            {{-- 직접 써보기 (큰 캔버스 1개) --}}
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">직접 써보기</h3>
+                <p class="text-sm text-gray-600 mb-4">가이드 글자를 따라 직접 써보세요.</p>
+
+                <div x-data="{
+                    isDrawing: false, strokes: [], currentStroke: [], canvas: null, ctx: null,
+                    init() { this.canvas = this.$refs.mainCanvas; this.ctx = this.canvas.getContext('2d'); this.drawGuide(); },
+                    drawGuide() {
+                        const S = 400;
+                        this.ctx.clearRect(0, 0, S, S);
+                        this.ctx.strokeStyle = '#e5e7eb'; this.ctx.lineWidth = 1; this.ctx.setLineDash([5, 5]);
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(S/2, 0); this.ctx.lineTo(S/2, S);
+                        this.ctx.moveTo(0, S/2); this.ctx.lineTo(S, S/2);
+                        this.ctx.moveTo(0, 0); this.ctx.lineTo(S, S);
+                        this.ctx.moveTo(S, 0); this.ctx.lineTo(0, S);
+                        this.ctx.stroke(); this.ctx.setLineDash([]);
+                        this.ctx.strokeStyle = '#d1d5db'; this.ctx.lineWidth = 2; this.ctx.strokeRect(1, 1, S-2, S-2);
+                        this.ctx.font = '280px serif'; this.ctx.fillStyle = '#e2e8f0';
+                        this.ctx.textAlign = 'center'; this.ctx.textBaseline = 'middle';
+                        this.ctx.fillText('{{ $hanja->char_value }}', S/2, S/2 + 10);
+                        this.redrawStrokes();
+                    },
+                    redrawStrokes() {
+                        this.ctx.strokeStyle = '#1e293b'; this.ctx.lineWidth = 4; this.ctx.lineCap = 'round'; this.ctx.lineJoin = 'round';
+                        this.strokes.forEach(s => { if (s.length < 2) return; this.ctx.beginPath(); this.ctx.moveTo(s[0].x, s[0].y); s.slice(1).forEach(p => this.ctx.lineTo(p.x, p.y)); this.ctx.stroke(); });
+                    },
+                    getPos(e) { const r = this.canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * 400 / r.width, y: (e.clientY - r.top) * 400 / r.height }; },
+                    startDraw(e) { e.preventDefault(); this.isDrawing = true; this.currentStroke = [this.getPos(e)]; },
+                    draw(e) { if (!this.isDrawing) return; e.preventDefault(); const p = this.getPos(e); this.currentStroke.push(p); const prev = this.currentStroke[this.currentStroke.length - 2]; this.ctx.strokeStyle = '#1e293b'; this.ctx.lineWidth = 4; this.ctx.lineCap = 'round'; this.ctx.lineJoin = 'round'; this.ctx.beginPath(); this.ctx.moveTo(prev.x, prev.y); this.ctx.lineTo(p.x, p.y); this.ctx.stroke(); },
+                    endDraw(e) { if (!this.isDrawing) return; e.preventDefault(); this.isDrawing = false; if (this.currentStroke.length > 1) this.strokes.push([...this.currentStroke]); this.currentStroke = []; },
+                    undo() { this.strokes.pop(); this.drawGuide(); },
+                    clearAll() { this.strokes = []; this.drawGuide(); }
+                }" class="flex flex-col items-center">
+                    <div class="border-2 border-gray-300 rounded-xl overflow-hidden mb-4 bg-white" style="width:100%;max-width:400px;aspect-ratio:1/1;touch-action:none;">
+                        <canvas x-ref="mainCanvas" width="400" height="400"
+                            class="w-full h-full"
+                            style="touch-action:none; cursor: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22><circle cx=%2212%22 cy=%2212%22 r=%224%22 fill=%22%231e293b%22 opacity=%220.7%22/><circle cx=%2212%22 cy=%2212%22 r=%223%22 fill=%22none%22 stroke=%22white%22 stroke-width=%221%22/></svg>') 12 12, crosshair;"
+                            @pointerdown="startDraw($event)"
+                            @pointermove="draw($event)"
+                            @pointerup="endDraw($event)"
+                            @pointerleave="endDraw($event)">
+                        </canvas>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="undo()" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a4 4 0 014 4v0a4 4 0 01-4 4H3m0 0l4-4m-4 4l4 4"/></svg>
+                            다시 쓰기
+                        </button>
+                        <button @click="clearAll()" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-900 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            지우기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- 반복 연습 버튼 --}}
             <div class="text-center" x-data="{ showPractice: false }"
                  @keydown.escape.window="showPractice = false; document.body.style.overflow = ''">
                 <button @click="showPractice = true; document.body.style.overflow = 'hidden'; $nextTick(() => $dispatch('init-practice'))"
                     class="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 shadow-lg hover:shadow-xl transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    직접 써보기
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    반복 연습하기
                 </button>
 
                 {{-- 모달 오버레이 --}}
@@ -138,7 +196,7 @@
                                 ctx.moveTo(S, 0); ctx.lineTo(0, S);
                                 ctx.stroke(); ctx.setLineDash([]);
                                 ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, S-2, S-2);
-                                ctx.font = '200px serif'; ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                                ctx.font = '200px serif'; ctx.fillStyle = '#e2e8f0';
                                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                                 ctx.fillText('{{ $hanja->char_value }}', S/2, S/2 + 8);
                                 this.redrawCellStrokes(i);
