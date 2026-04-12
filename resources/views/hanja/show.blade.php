@@ -167,6 +167,7 @@
                             cellCount: 4,
                             cells: [],
                             ready: false,
+                            showGuide: true,
                             initCells() {
                                 this.cells = [];
                                 for (let i = 0; i < this.cellCount; i++) {
@@ -196,9 +197,11 @@
                                 ctx.moveTo(S, 0); ctx.lineTo(0, S);
                                 ctx.stroke(); ctx.setLineDash([]);
                                 ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, S-2, S-2);
-                                ctx.font = '200px serif'; ctx.fillStyle = '#e2e8f0';
-                                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                                ctx.fillText('{{ $hanja->char_value }}', S/2, S/2 + 8);
+                                if (this.showGuide) {
+                                    ctx.font = '200px serif'; ctx.fillStyle = '#e2e8f0';
+                                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                                    ctx.fillText('{{ $hanja->char_value }}', S/2, S/2 + 8);
+                                }
                                 this.redrawCellStrokes(i);
                             },
                             redrawCellStrokes(i) {
@@ -250,8 +253,8 @@
                             </button>
                         </div>
 
-                        {{-- 칸 수 조절 --}}
-                        <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-50">
+                        {{-- 컨트롤 바 --}}
+                        <div class="flex items-center gap-3 px-6 py-3 border-b border-gray-50 flex-wrap">
                             <span class="text-sm text-gray-600">반복 칸 수:</span>
                             <div class="flex gap-1">
                                 <template x-for="n in [2, 4, 6, 8]" :key="n">
@@ -261,6 +264,12 @@
                                         x-text="n"></button>
                                 </template>
                             </div>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer select-none ml-3">
+                                <input type="checkbox" x-model="showGuide"
+                                    @change="cells.forEach((_, i) => drawCellGuide(i))"
+                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                <span class="text-sm text-gray-600">가이드 표시</span>
+                            </label>
                             <button @click="clearAll()" class="ml-auto text-sm text-gray-500 hover:text-red-600 transition">전체 지우기</button>
                         </div>
 
