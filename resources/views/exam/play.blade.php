@@ -35,13 +35,17 @@
                 <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm font-semibold text-indigo-600">{{ $categoryLabel }} 시험</span>
-                        <span class="text-sm text-gray-500">
-                            <span x-text="Object.keys(submitted).length"></span> / <span x-text="total"></span> 완료
-                        </span>
+                        <div class="flex items-center gap-3 text-sm">
+                            <span class="text-emerald-600 font-semibold"><span x-text="correctCount"></span>맞음</span>
+                            <span class="text-red-500 font-semibold"><span x-text="Object.keys(submitted).length - correctCount"></span>틀림</span>
+                            <span class="text-gray-400"><span x-text="Object.keys(submitted).length"></span>/<span x-text="total"></span></span>
+                        </div>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                             :style="'width:' + (Object.keys(submitted).length / total * 100) + '%'"></div>
+                    <div class="w-full bg-gray-200 rounded-full h-3 flex overflow-hidden">
+                        <div class="bg-emerald-500 h-3 transition-all duration-300"
+                             :style="'width:' + (correctCount / total * 100) + '%'"></div>
+                        <div class="bg-red-400 h-3 transition-all duration-300"
+                             :style="'width:' + ((Object.keys(submitted).length - correctCount) / total * 100) + '%'"></div>
                     </div>
                 </div>
 
@@ -61,25 +65,25 @@
                                 <button @click="select(qi, choice.id)"
                                     :disabled="submitted[qi]"
                                     :class="{
-                                        'border-emerald-500 bg-emerald-50 text-emerald-800': isCorrectChoice(qi, choice.id),
-                                        'border-red-400 bg-red-50 text-red-800': isWrongChoice(qi, choice.id),
-                                        'border-gray-200 hover:border-indigo-300 hover:bg-indigo-50': !submitted[qi],
-                                        'border-gray-100 text-gray-400': submitted[qi] && !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
+                                        'border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-300': isCorrectChoice(qi, choice.id),
+                                        'border-red-500 bg-red-50 text-red-800 ring-2 ring-red-300': isWrongChoice(qi, choice.id),
+                                        'border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 hover:shadow-md active:bg-indigo-100 cursor-pointer': !submitted[qi],
+                                        'border-gray-100 text-gray-400 opacity-60': submitted[qi] && !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
                                     }"
-                                    class="w-full text-left px-5 py-4 border-2 rounded-xl transition flex items-center gap-3">
-                                    <span class="flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold"
+                                    class="w-full text-left px-5 py-4 border-2 rounded-xl transition-all duration-150 flex items-center gap-3">
+                                    <span class="flex-shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all"
                                         :class="{
                                             'border-emerald-500 bg-emerald-500 text-white': isCorrectChoice(qi, choice.id),
-                                            'border-red-400 bg-red-400 text-white': isWrongChoice(qi, choice.id),
-                                            'border-gray-300 text-gray-500': !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
+                                            'border-red-500 bg-red-500 text-white': isWrongChoice(qi, choice.id),
+                                            'border-gray-300 text-gray-500 group-hover:border-indigo-400': !isCorrectChoice(qi, choice.id) && !isWrongChoice(qi, choice.id),
                                         }"
                                         x-text="['A','B','C','D'][ci]"></span>
-                                    <span class="text-sm font-medium" x-text="choice.text"></span>
+                                    <span class="flex-1 font-medium" x-text="choice.text"></span>
                                     <template x-if="isCorrectChoice(qi, choice.id)">
-                                        <svg class="w-5 h-5 ml-auto text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                        <svg class="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                     </template>
                                     <template x-if="isWrongChoice(qi, choice.id)">
-                                        <svg class="w-5 h-5 ml-auto text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                        <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                                     </template>
                                 </button>
                             </template>
@@ -104,17 +108,18 @@
                     </button>
                     <div x-show="current === 0"></div>
 
-                    {{-- 문제 번호 점 --}}
-                    <div class="flex gap-1.5 flex-wrap justify-center max-w-xs">
+                    {{-- 문제 번호 칸 --}}
+                    <div class="flex gap-1 flex-wrap justify-center">
                         <template x-for="(q, qi) in questions" :key="'dot'+qi">
                             <button @click="current = qi"
-                                class="w-3 h-3 rounded-full transition"
+                                class="w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center"
                                 :class="{
-                                    'bg-emerald-500': submitted[qi] && answers[qi] === q.correct_id,
-                                    'bg-red-400': submitted[qi] && answers[qi] !== q.correct_id,
-                                    'bg-indigo-600 scale-125': current === qi && !submitted[qi],
-                                    'bg-gray-300': current !== qi && !submitted[qi],
-                                }"></button>
+                                    'bg-emerald-500 text-white': submitted[qi] && answers[qi] === q.correct_id,
+                                    'bg-red-500 text-white': submitted[qi] && answers[qi] !== q.correct_id,
+                                    'bg-indigo-600 text-white ring-2 ring-indigo-300 scale-110': current === qi && !submitted[qi],
+                                    'bg-gray-200 text-gray-600 hover:bg-gray-300': current !== qi && !submitted[qi],
+                                }"
+                                x-text="qi + 1"></button>
                         </template>
                     </div>
 
