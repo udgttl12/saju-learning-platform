@@ -1,0 +1,160 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo, pdo_mysql, xml, bcmath, curl
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          retention-days: 3
+          path: |
+            vendor/
+            public/build/
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy via rsync
+        env:
+          REMOTE_HOST: ${{ secrets.EC2_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+          DEPLOY_BASE: /var/www/php/saju_learning
+        run: |
+          SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          REMOTE="${REMOTE_USER}@${REMOTE_HOST}"
+          RELEASE_TS=$(date +%Y%m%d%H%M%S)
+          RELEASE_DIR="${DEPLOY_BASE}/releases/${RELEASE_TS}"
+
+          # Create release directory
+          $SSH_CMD $REMOTE "mkdir -p ${RELEASE_DIR} ${DEPLOY_BASE}/shared/storage/{app/public,framework/{cache,sessions,views},logs}"
+
+          # Sync files to release directory
+          rsync -azP --delete \
+            --exclude='.git' \
+            --exclude='.env' \
+            --exclude='storage' \
+            --exclude='node_modules' \
+            --exclude='.github' \
+            -e "${SSH_CMD}" \
+            ./ ${REMOTE}:${RELEASE_DIR}/
+
+          # Run deployment commands on server
+          $SSH_CMD $REMOTE bash -s "${RELEASE_DIR}" "${DEPLOY_BASE}" << 'DEPLOY_SCRIPT'
+          set -e
+          RELEASE_DIR="$1"
+          DEPLOY_BASE="$2"
+
+          # Link shared storage
+          rm -rf "${RELEASE_DIR}/storage"
+          ln -s "${DEPLOY_BASE}/shared/storage" "${RELEASE_DIR}/storage"
+
+          # Link shared .env
+          ln -sf "${DEPLOY_BASE}/shared/.env" "${RELEASE_DIR}/.env"
+
+          # Laravel optimization
+          cd "${RELEASE_DIR}"
+          php artisan migrate --force
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan storage:link --force 2>/dev/null || true
+
+          # Atomic symlink switch (zero-downtime)
+          ln -sfn "${RELEASE_DIR}" "${DEPLOY_BASE}/current"
+
+          # Reload PHP-FPM
+          sudo systemctl reload php-fpm 2>/dev/null \
+            || sudo systemctl reload php8.4-fpm 2>/dev/null \
+            || true
+
+          # Cleanup old releases (keep latest 5)
+          cd "${DEPLOY_BASE}/releases"
+          ls -1dt */ | tail -n +6 | xargs rm -rf 2>/dev/null || true
+
+          echo "Deployed: ${RELEASE_DIR}"
+          DEPLOY_SCRIPT
+
+      - name: Verify deployment
+        env:
+          REMOTE_HOST: ${{ secrets.EC2_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+        run: |
+          SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          $SSH_CMD ${REMOTE_USER}@${REMOTE_HOST} "cd /var/www/php/saju_learning/current && php artisan --version"
+
+      - name: Rollback on failure
+        if: failure()
+        env:
+          REMOTE_HOST: ${{ secrets.EC2_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+        run: |
+          SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          $SSH_CMD ${REMOTE_USER}@${REMOTE_HOST} bash << 'EOF'
+          PREV=$(ls -1dt /var/www/php/saju_learning/releases/*/ | sed -n '2p' | tr -d '/')
+          if [ -n "$PREV" ]; then
+            ln -sfn "$PREV" /var/www/php/saju_learning/current
+            sudo systemctl reload php-fpm 2>/dev/null || sudo systemctl reload php8.4-fpm 2>/dev/null || true
+            echo "Rolled back to: $PREV"
+          fi
+          EOF
