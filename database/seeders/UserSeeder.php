@@ -9,6 +9,11 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // 이미 존재하면 스킵
+        if (DB::table('users')->where('email', 'admin@example.com')->exists()) {
+            return;
+        }
+
         DB::table('users')->insert([
             [
                 'id' => 1,
