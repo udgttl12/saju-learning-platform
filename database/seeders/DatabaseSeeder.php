@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             HanjaCharSeeder::class,
             QuizSeeder::class,
             SajuExampleSeeder::class,
+            LessonContentEnrichSeeder::class,
             DemoProgressSeeder::class,
         ]);
     }
