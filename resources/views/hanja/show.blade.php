@@ -172,16 +172,16 @@
                                 for (let i = 0; i < this.cellCount; i++) {
                                     this.cells.push({ strokes: [], currentStroke: [], isDrawing: false });
                                 }
-                                this.$nextTick(() => {
+                                setTimeout(() => {
                                     this.cells.forEach((_, i) => this.drawCellGuide(i));
                                     this.ready = true;
-                                });
+                                }, 100);
                             },
                             setCellCount(n) {
                                 this.cellCount = n;
                                 this.initCells();
                             },
-                            getCanvas(i) { return this.$refs['cell' + i]; },
+                            getCanvas(i) { return document.getElementById('practiceCell' + i); },
                             getCtx(i) { const c = this.getCanvas(i); return c ? c.getContext('2d') : null; },
                             drawCellGuide(i) {
                                 const ctx = this.getCtx(i);
@@ -271,7 +271,7 @@
                                     <div class="relative group">
                                         <span class="absolute top-1 left-2 text-xs text-gray-300 font-mono z-10" x-text="i + 1"></span>
                                         <div class="border-2 border-gray-200 rounded-lg overflow-hidden bg-white aspect-square hover:border-indigo-300 transition" style="touch-action:none;">
-                                            <canvas :x-ref="'cell' + i" width="300" height="300"
+                                            <canvas :id="'practiceCell' + i" width="300" height="300"
                                                 class="w-full h-full"
                                                 style="touch-action:none; cursor: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22><circle cx=%2212%22 cy=%2212%22 r=%224%22 fill=%22%231e293b%22 opacity=%220.7%22/><circle cx=%2212%22 cy=%2212%22 r=%223%22 fill=%22none%22 stroke=%22white%22 stroke-width=%221%22/></svg>') 12 12, crosshair;"
                                                 @pointerdown="startDraw($event, i)"
