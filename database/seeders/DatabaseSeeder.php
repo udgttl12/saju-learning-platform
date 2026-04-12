@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             LessonContentEnrichSeeder::class,
             SajuStructureTrackSeeder::class,
             MyeongrihakBasicsTrackSeeder::class,
+            ManselyeokEnrichSeeder::class,
             DemoProgressSeeder::class,
         ]);
     }
