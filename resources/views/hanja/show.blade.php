@@ -138,7 +138,7 @@
                                 ctx.moveTo(S, 0); ctx.lineTo(0, S);
                                 ctx.stroke(); ctx.setLineDash([]);
                                 ctx.strokeStyle = '#d1d5db'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, S-2, S-2);
-                                ctx.font = '200px serif'; ctx.fillStyle = 'rgba(0,0,0,0.05)';
+                                ctx.font = '200px serif'; ctx.fillStyle = 'rgba(0,0,0,0.15)';
                                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                                 ctx.fillText('{{ $hanja->char_value }}', S/2, S/2 + 8);
                                 this.redrawCellStrokes(i);

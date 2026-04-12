@@ -283,7 +283,7 @@
                                                 this.ctx.setLineDash([]);
                                                 // 가이드 글자
                                                 this.ctx.font = '280px serif';
-                                                this.ctx.fillStyle = 'rgba(0,0,0,0.06)';
+                                                this.ctx.fillStyle = 'rgba(0,0,0,0.15)';
                                                 this.ctx.textAlign = 'center';
                                                 this.ctx.textBaseline = 'middle';
                                                 this.ctx.fillText('{{ $practiceChar->char_value }}', 200, 210);
