@@ -86,6 +86,129 @@
                 @endauth
             </div>
 
+            {{-- 직접 써보기 섹션 --}}
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">직접 써보기</h3>
+                <p class="text-sm text-gray-600 mb-4">가이드 글자를 따라 직접 써보세요. 마우스, 펜, 터치 모두 지원됩니다.</p>
+
+                <div x-data="{
+                    isDrawing: false,
+                    strokes: [],
+                    currentStroke: [],
+                    canvas: null,
+                    ctx: null,
+                    init() {
+                        this.canvas = this.$refs.hanjaCanvas;
+                        this.ctx = this.canvas.getContext('2d');
+                        this.drawGuide();
+                    },
+                    drawGuide() {
+                        this.ctx.clearRect(0, 0, 400, 400);
+                        // 격자 가이드라인
+                        this.ctx.strokeStyle = '#e5e7eb';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.setLineDash([5, 5]);
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(200, 0); this.ctx.lineTo(200, 400);
+                        this.ctx.moveTo(0, 200); this.ctx.lineTo(400, 200);
+                        this.ctx.moveTo(0, 0); this.ctx.lineTo(400, 400);
+                        this.ctx.moveTo(400, 0); this.ctx.lineTo(0, 400);
+                        this.ctx.stroke();
+                        this.ctx.setLineDash([]);
+                        // 테두리
+                        this.ctx.strokeStyle = '#d1d5db';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.strokeRect(1, 1, 398, 398);
+                        // 가이드 글자
+                        this.ctx.font = '280px serif';
+                        this.ctx.fillStyle = 'rgba(0,0,0,0.06)';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.textBaseline = 'middle';
+                        this.ctx.fillText('{{ $hanja->char_value }}', 200, 210);
+                        // 기존 획 복원
+                        this.redrawStrokes();
+                    },
+                    redrawStrokes() {
+                        this.ctx.strokeStyle = '#1e293b';
+                        this.ctx.lineWidth = 4;
+                        this.ctx.lineCap = 'round';
+                        this.ctx.lineJoin = 'round';
+                        this.strokes.forEach(stroke => {
+                            if (stroke.length < 2) return;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(stroke[0].x, stroke[0].y);
+                            stroke.slice(1).forEach(p => this.ctx.lineTo(p.x, p.y));
+                            this.ctx.stroke();
+                        });
+                    },
+                    getPos(e) {
+                        const rect = this.canvas.getBoundingClientRect();
+                        const scaleX = 400 / rect.width;
+                        const scaleY = 400 / rect.height;
+                        return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+                    },
+                    startDraw(e) {
+                        e.preventDefault();
+                        this.isDrawing = true;
+                        this.currentStroke = [this.getPos(e)];
+                    },
+                    draw(e) {
+                        if (!this.isDrawing) return;
+                        e.preventDefault();
+                        const pos = this.getPos(e);
+                        this.currentStroke.push(pos);
+                        this.ctx.strokeStyle = '#1e293b';
+                        this.ctx.lineWidth = 4;
+                        this.ctx.lineCap = 'round';
+                        this.ctx.lineJoin = 'round';
+                        const prev = this.currentStroke[this.currentStroke.length - 2];
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(prev.x, prev.y);
+                        this.ctx.lineTo(pos.x, pos.y);
+                        this.ctx.stroke();
+                    },
+                    endDraw(e) {
+                        if (!this.isDrawing) return;
+                        e.preventDefault();
+                        this.isDrawing = false;
+                        if (this.currentStroke.length > 1) {
+                            this.strokes.push([...this.currentStroke]);
+                        }
+                        this.currentStroke = [];
+                    },
+                    undo() {
+                        this.strokes.pop();
+                        this.drawGuide();
+                    },
+                    clearAll() {
+                        this.strokes = [];
+                        this.drawGuide();
+                    }
+                }" class="flex flex-col items-center">
+                    <div class="border-2 border-gray-300 rounded-xl overflow-hidden mb-4 bg-white touch-none" style="width:100%;max-width:400px;aspect-ratio:1/1;">
+                        <canvas x-ref="hanjaCanvas" width="400" height="400"
+                            style="width:100%;height:100%;cursor:crosshair;"
+                            @pointerdown="startDraw($event)"
+                            @pointermove="draw($event)"
+                            @pointerup="endDraw($event)"
+                            @pointerleave="endDraw($event)">
+                        </canvas>
+                    </div>
+                    <div class="flex gap-3">
+                        <button @click="undo()"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a4 4 0 014 4v0a4 4 0 01-4 4H3m0 0l4-4m-4 4l4 4"/></svg>
+                            다시 쓰기
+                        </button>
+                        <button @click="clearAll()"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            지우기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {{-- 상세 정보 카드들 --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {{-- 기억법 (Mnemonic) --}}

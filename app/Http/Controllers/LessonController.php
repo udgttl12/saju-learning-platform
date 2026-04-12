@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lesson;
 use App\Models\LessonAttempt;
+use App\Models\QuizSet;
 use App\Models\TrackEnrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,7 +52,24 @@ class LessonController extends Controller
         // 트랙 마지막 접근 시간도 업데이트
         $enrollment->update(['last_accessed_at' => now()]);
 
-        return view('lessons.show', compact('lesson', 'attempt'));
+        // 스텝에서 quiz_set_code가 있는 경우 QuizSet + QuizItems 미리 로드
+        $quizSets = collect();
+        foreach ($lesson->steps as $step) {
+            if ($step->payload_json && isset($step->payload_json['quiz_set_code'])) {
+                $code = $step->payload_json['quiz_set_code'];
+                $quizSet = QuizSet::where('code', $code)
+                    ->with('items')
+                    ->first();
+                if ($quizSet) {
+                    $quizSets[$code] = $quizSet;
+                }
+            }
+        }
+
+        // 레슨에 연결된 한자들 (이미 with에서 로드되지만 명시적으로 전달)
+        $hanjaChars = $lesson->hanjaChars;
+
+        return view('lessons.show', compact('lesson', 'attempt', 'quizSets', 'hanjaChars'));
     }
 
     public function complete(string $slug)
