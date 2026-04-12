@@ -12,7 +12,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -40,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     environment: production
-
     steps:
       - uses: actions/checkout@v4
 
@@ -63,15 +61,22 @@ jobs:
           REMOTE_USER: ${{ secrets.EC2_USER }}
           DEPLOY_BASE: /var/www/php/saju_learning
         run: |
+          set -euo pipefail
+
           SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
           REMOTE="${REMOTE_USER}@${REMOTE_HOST}"
           RELEASE_TS=$(date +%Y%m%d%H%M%S)
           RELEASE_DIR="${DEPLOY_BASE}/releases/${RELEASE_TS}"
 
-          # Create release directory and shared directories
-          $SSH_CMD $REMOTE "mkdir -p ${RELEASE_DIR} ${DEPLOY_BASE}/shared/storage/{app/public,framework/{cache,sessions,views},logs} ${DEPLOY_BASE}/shared/database"
+          $SSH_CMD "$REMOTE" "mkdir -p \
+            '${RELEASE_DIR}' \
+            '${DEPLOY_BASE}/shared/storage/app/public' \
+            '${DEPLOY_BASE}/shared/storage/framework/cache' \
+            '${DEPLOY_BASE}/shared/storage/framework/sessions' \
+            '${DEPLOY_BASE}/shared/storage/framework/views' \
+            '${DEPLOY_BASE}/shared/storage/logs' \
+            '${DEPLOY_BASE}/shared/database'"
 
-          # Sync files to release directory
           rsync -azP --delete \
             --exclude='.git' \
             --exclude='.env' \
@@ -79,11 +84,11 @@ jobs:
             --exclude='node_modules' \
             --exclude='.github' \
             -e "${SSH_CMD}" \
-            ./ ${REMOTE}:${RELEASE_DIR}/
+            ./ "${REMOTE}:${RELEASE_DIR}/"
 
-          # Run deployment commands on server
-          $SSH_CMD $REMOTE bash -s "${RELEASE_DIR}" "${DEPLOY_BASE}" << 'DEPLOY_SCRIPT'
-          set -e
+          $SSH_CMD "$REMOTE" bash -s -- "${RELEASE_DIR}" "${DEPLOY_BASE}" <<'DEPLOY_SCRIPT'
+          set -euo pipefail
+
           RELEASE_DIR="$1"
           DEPLOY_BASE="$2"
 
@@ -95,7 +100,7 @@ jobs:
           rm -rf "${RELEASE_DIR}/storage"
           ln -sfn "${DEPLOY_BASE}/shared/storage" "${RELEASE_DIR}/storage"
 
-          # composer install (서버에서)
+          # composer install
           cd "${RELEASE_DIR}"
           composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
@@ -111,12 +116,26 @@ jobs:
           ln -sfn "${RELEASE_DIR}" "${DEPLOY_BASE}/current"
 
           # 권한/SELinux
-          setfacl -R -m u:apache:rwx "${DEPLOY_BASE}/shared/storage" "${DEPLOY_BASE}/current/bootstrap/cache"
-          chcon -R -t httpd_sys_rw_content_t "${DEPLOY_BASE}/shared/storage" "${DEPLOY_BASE}/current/bootstrap/cache"
+          setfacl -R -m u:apache:rwx \
+            "${DEPLOY_BASE}/shared/storage" \
+            "${DEPLOY_BASE}/shared/database" \
+            "${DEPLOY_BASE}/current/bootstrap/cache"
+          setfacl -R -d -m u:apache:rwx \
+            "${DEPLOY_BASE}/shared/storage" \
+            "${DEPLOY_BASE}/shared/database" \
+            "${DEPLOY_BASE}/current/bootstrap/cache"
+          chcon -R -t httpd_sys_rw_content_t \
+            "${DEPLOY_BASE}/shared/storage" \
+            "${DEPLOY_BASE}/shared/database" \
+            "${DEPLOY_BASE}/current/bootstrap/cache" || true
+
+          # 서비스 리로드
+          sudo systemctl reload php-fpm
+          sudo systemctl reload nginx
 
           # 이전 릴리스 정리 (최근 3개 보존)
           cd "${DEPLOY_BASE}/releases"
-          ls -1dt */ | tail -n +4 | xargs rm -rf 2>/dev/null || true
+          ls -1dt */ | tail -n +4 | xargs -r rm -rf
 
           echo "Deployed: ${RELEASE_DIR}"
           DEPLOY_SCRIPT
@@ -126,8 +145,9 @@ jobs:
           REMOTE_HOST: ${{ secrets.EC2_HOST }}
           REMOTE_USER: ${{ secrets.EC2_USER }}
         run: |
+          set -euo pipefail
           SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
-          $SSH_CMD ${REMOTE_USER}@${REMOTE_HOST} "cd /var/www/php/saju_learning/current && php artisan --version"
+          $SSH_CMD "${REMOTE_USER}@${REMOTE_HOST}" "cd /var/www/php/saju_learning/current && php artisan --version"
 
       - name: Rollback on failure
         if: failure()
@@ -135,13 +155,23 @@ jobs:
           REMOTE_HOST: ${{ secrets.EC2_HOST }}
           REMOTE_USER: ${{ secrets.EC2_USER }}
         run: |
+          set -euo pipefail
           SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
-          $SSH_CMD ${REMOTE_USER}@${REMOTE_HOST} bash << 'EOF'
-          PREV=$(ls -1dt /var/www/php/saju_learning/releases/*/ | sed -n '2p' | tr -d '/')
+          $SSH_CMD "${REMOTE_USER}@${REMOTE_HOST}" bash <<'EOF'
+          set -euo pipefail
+          PREV=$(ls -1dt /var/www/php/saju_learning/releases/*/ | sed -n '2p' | sed 's:/$::')
           if [ -n "$PREV" ]; then
             ln -sfn "$PREV" /var/www/php/saju_learning/current
-            setfacl -R -m u:apache:rwx /var/www/php/saju_learning/shared/storage /var/www/php/saju_learning/current/bootstrap/cache
-            chcon -R -t httpd_sys_rw_content_t /var/www/php/saju_learning/shared/storage /var/www/php/saju_learning/current/bootstrap/cache
+            setfacl -R -m u:apache:rwx \
+              /var/www/php/saju_learning/shared/storage \
+              /var/www/php/saju_learning/shared/database \
+              /var/www/php/saju_learning/current/bootstrap/cache
+            chcon -R -t httpd_sys_rw_content_t \
+              /var/www/php/saju_learning/shared/storage \
+              /var/www/php/saju_learning/shared/database \
+              /var/www/php/saju_learning/current/bootstrap/cache || true
+            sudo systemctl reload php-fpm
+            sudo systemctl reload nginx
             echo "Rolled back to: $PREV"
           fi
           EOF
