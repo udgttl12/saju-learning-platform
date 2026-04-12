@@ -9,6 +9,8 @@ class DictionaryController extends Controller
 {
     public function index(Request $request)
     {
+        $category = $request->input('category', 'all');
+
         $query = HanjaChar::where('publish_status', 'published');
 
         if ($request->filled('search')) {
@@ -20,20 +22,23 @@ class DictionaryController extends Controller
             });
         }
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
+        if ($category !== 'all') {
+            $query->where('category', $category);
         }
 
         if ($request->filled('element')) {
             $query->where('element', $request->element);
         }
 
-        $hanjaChars = $query->orderBy('reading_ko')->paginate(24)->withQueryString();
-        $categories = HanjaChar::where('publish_status', 'published')
-            ->select('category')->distinct()->whereNotNull('category')->pluck('category');
-        $elements = HanjaChar::where('publish_status', 'published')
-            ->select('element')->distinct()->whereNotNull('element')->pluck('element');
+        $hanjaChars = $query->orderBy('id')->paginate(60)->withQueryString();
 
-        return view('dictionary.index', compact('hanjaChars', 'categories', 'elements'));
+        $categoryCounts = HanjaChar::where('publish_status', 'published')
+            ->selectRaw('category, count(*) as cnt')
+            ->groupBy('category')
+            ->pluck('cnt', 'category');
+
+        $totalCount = HanjaChar::where('publish_status', 'published')->count();
+
+        return view('dictionary.index', compact('hanjaChars', 'category', 'categoryCounts', 'totalCount'));
     }
 }
