@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             QuizSeeder::class,
             SajuExampleSeeder::class,
             LessonContentEnrichSeeder::class,
+            SajuStructureTrackSeeder::class,
             DemoProgressSeeder::class,
         ]);
     }
