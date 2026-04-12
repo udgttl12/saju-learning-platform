@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             SajuExampleSeeder::class,
             LessonContentEnrichSeeder::class,
             SajuStructureTrackSeeder::class,
+            MyeongrihakBasicsTrackSeeder::class,
             DemoProgressSeeder::class,
         ]);
     }
