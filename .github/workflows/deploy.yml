@@ -16,23 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, pdo, pdo_mysql, xml, bcmath, curl
-          coverage: none
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -50,9 +33,7 @@ jobs:
         with:
           name: build-artifacts
           retention-days: 3
-          path: |
-            vendor/
-            public/build/
+          path: public/build/
 
   deploy:
     name: Deploy
@@ -67,6 +48,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
+          path: public/build/
 
       - name: Setup SSH key
         run: |
@@ -86,8 +68,8 @@ jobs:
           RELEASE_TS=$(date +%Y%m%d%H%M%S)
           RELEASE_DIR="${DEPLOY_BASE}/releases/${RELEASE_TS}"
 
-          # Create release directory
-          $SSH_CMD $REMOTE "mkdir -p ${RELEASE_DIR} ${DEPLOY_BASE}/shared/storage/{app/public,framework/{cache,sessions,views},logs}"
+          # Create release directory and shared directories
+          $SSH_CMD $REMOTE "mkdir -p ${RELEASE_DIR} ${DEPLOY_BASE}/shared/storage/{app/public,framework/{cache,sessions,views},logs} ${DEPLOY_BASE}/shared/database"
 
           # Sync files to release directory
           rsync -azP --delete \
@@ -105,30 +87,34 @@ jobs:
           RELEASE_DIR="$1"
           DEPLOY_BASE="$2"
 
-          # Link shared storage
+          # .env.prod -> shared/.env 자동 동기화
+          cp "${RELEASE_DIR}/.env.prod" "${DEPLOY_BASE}/shared/.env"
+
+          # shared 심볼릭 링크
+          ln -sfn "${DEPLOY_BASE}/shared/.env" "${RELEASE_DIR}/.env"
           rm -rf "${RELEASE_DIR}/storage"
-          ln -s "${DEPLOY_BASE}/shared/storage" "${RELEASE_DIR}/storage"
+          ln -sfn "${DEPLOY_BASE}/shared/storage" "${RELEASE_DIR}/storage"
 
-          # Copy .env.prod as .env
-          cp "${RELEASE_DIR}/.env.prod" "${RELEASE_DIR}/.env"
-
-          # Laravel optimization
+          # composer install (서버에서)
           cd "${RELEASE_DIR}"
-          php artisan migrate --force
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          php artisan storage:link --force 2>/dev/null || true
+          composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
-          # Atomic symlink switch (zero-downtime)
+          # Laravel 캐시 클리어 + migrate
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan view:clear
+          php artisan migrate --force
+          php artisan storage:link || true
+
+          # current 심볼릭 링크 전환
           ln -sfn "${RELEASE_DIR}" "${DEPLOY_BASE}/current"
 
-          # Reload PHP-FPM
-          sudo systemctl reload php-fpm 2>/dev/null \
-            || sudo systemctl reload php8.4-fpm 2>/dev/null \
-            || true
+          # 권한/SELinux
+          setfacl -R -m u:apache:rwx "${DEPLOY_BASE}/shared/storage" "${DEPLOY_BASE}/current/bootstrap/cache"
+          chcon -R -t httpd_sys_rw_content_t "${DEPLOY_BASE}/shared/storage" "${DEPLOY_BASE}/current/bootstrap/cache"
 
-          # Cleanup old releases (keep latest 5)
+          # 이전 릴리스 정리 (최근 5개 보존)
           cd "${DEPLOY_BASE}/releases"
           ls -1dt */ | tail -n +6 | xargs rm -rf 2>/dev/null || true
 
@@ -154,7 +140,8 @@ jobs:
           PREV=$(ls -1dt /var/www/php/saju_learning/releases/*/ | sed -n '2p' | tr -d '/')
           if [ -n "$PREV" ]; then
             ln -sfn "$PREV" /var/www/php/saju_learning/current
-            sudo systemctl reload php-fpm 2>/dev/null || sudo systemctl reload php8.4-fpm 2>/dev/null || true
+            setfacl -R -m u:apache:rwx /var/www/php/saju_learning/shared/storage /var/www/php/saju_learning/current/bootstrap/cache
+            chcon -R -t httpd_sys_rw_content_t /var/www/php/saju_learning/shared/storage /var/www/php/saju_learning/current/bootstrap/cache
             echo "Rolled back to: $PREV"
           fi
           EOF
