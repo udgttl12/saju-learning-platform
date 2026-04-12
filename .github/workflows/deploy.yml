@@ -114,9 +114,9 @@ jobs:
           setfacl -R -m u:apache:rwx "${DEPLOY_BASE}/shared/storage" "${DEPLOY_BASE}/current/bootstrap/cache"
           chcon -R -t httpd_sys_rw_content_t "${DEPLOY_BASE}/shared/storage" "${DEPLOY_BASE}/current/bootstrap/cache"
 
-          # 이전 릴리스 정리 (최근 5개 보존)
+          # 이전 릴리스 정리 (최근 3개 보존)
           cd "${DEPLOY_BASE}/releases"
-          ls -1dt */ | tail -n +6 | xargs rm -rf 2>/dev/null || true
+          ls -1dt */ | tail -n +4 | xargs rm -rf 2>/dev/null || true
 
           echo "Deployed: ${RELEASE_DIR}"
           DEPLOY_SCRIPT
