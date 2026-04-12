@@ -109,8 +109,8 @@ jobs:
           rm -rf "${RELEASE_DIR}/storage"
           ln -s "${DEPLOY_BASE}/shared/storage" "${RELEASE_DIR}/storage"
 
-          # Link shared .env
-          ln -sf "${DEPLOY_BASE}/shared/.env" "${RELEASE_DIR}/.env"
+          # Copy .env.prod as .env
+          cp "${RELEASE_DIR}/.env.prod" "${RELEASE_DIR}/.env"
 
           # Laravel optimization
           cd "${RELEASE_DIR}"
