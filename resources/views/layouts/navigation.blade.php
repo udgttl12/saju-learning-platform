@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('lab.index')" :active="request()->routeIs('lab.*')">
                         실전관
                     </x-nav-link>
+                    <x-nav-link :href="route('exam.index')" :active="request()->routeIs('exam.*')">
+                        시험
+                    </x-nav-link>
                     @auth
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         대시보드
@@ -100,6 +103,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('lab.index')" :active="request()->routeIs('lab.*')">
                 실전관
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('exam.index')" :active="request()->routeIs('exam.*')">
+                시험
             </x-responsive-nav-link>
             @auth
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">

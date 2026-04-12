@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DictionaryController;
+use App\Http\Controllers\ExamController;
 use App\Http\Controllers\HanjaCharController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\LessonController;
@@ -63,6 +64,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/review/{id}', [ReviewController::class, 'show'])->name('review.show');
     Route::post('/review/{id}/answer', [ReviewController::class, 'answer'])->name('review.answer');
 });
+
+// 시험
+Route::get('/exam', [ExamController::class, 'index'])->name('exam.index');
+Route::post('/exam/start', [ExamController::class, 'start'])->name('exam.start');
+Route::get('/exam/play', [ExamController::class, 'play'])->name('exam.play');
+Route::post('/exam/submit', [ExamController::class, 'submit'])->name('exam.submit');
 
 // 사전
 Route::get('/dictionary', [DictionaryController::class, 'index'])->name('dictionary.index');
