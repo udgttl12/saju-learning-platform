@@ -4,14 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\LearningTrack;
 use App\Models\TrackEnrollment;
+use App\Services\GuestLearningService;
 use App\Services\LearningProgressService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TrackController extends Controller
 {
     public function __construct(
-        private LearningProgressService $learningProgressService
+        private LearningProgressService $learningProgressService,
+        private GuestLearningService $guestLearningService,
     ) {}
 
     public function index()
@@ -21,13 +22,18 @@ class TrackController extends Controller
             ->withCount('lessons')
             ->get();
 
-        $trackStates = $this->learningProgressService->getTrackStates(Auth::user(), $tracks);
-        $enrolledTrackIds = collect($trackStates)
-            ->filter(fn ($state) => $state['enrollment'] !== null)
-            ->keys()
-            ->map(fn ($id) => (int) $id)
-            ->values()
-            ->all();
+        if (Auth::check()) {
+            $trackStates = $this->learningProgressService->getTrackStates(Auth::user(), $tracks);
+            $enrolledTrackIds = collect($trackStates)
+                ->filter(fn ($state) => $state['enrollment'] !== null)
+                ->keys()
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+        } else {
+            $trackStates = $this->guestLearningService->getTrackStates($tracks);
+            $enrolledTrackIds = [];
+        }
 
         return view('tracks.index', compact('tracks', 'enrolledTrackIds', 'trackStates'));
     }
@@ -41,7 +47,10 @@ class TrackController extends Controller
             }])
             ->firstOrFail();
 
-        $trackState = $this->learningProgressService->getTrackState(Auth::user(), $track);
+        $user = Auth::user();
+        $trackState = $user
+            ? $this->learningProgressService->getTrackState($user, $track)
+            : $this->guestLearningService->getTrackState($track);
         $enrollment = null;
         $completedLessonIds = [];
         $lessonStates = [];
@@ -49,17 +58,24 @@ class TrackController extends Controller
         $trackExamAttempt = null;
         $allLessonsCompleted = false;
 
-        if (Auth::check()) {
-            $enrollment = TrackEnrollment::where('user_id', Auth::id())
+        if ($user) {
+            $enrollment = TrackEnrollment::where('user_id', $user->id)
                 ->where('learning_track_id', $track->id)
                 ->first();
 
             if ($enrollment) {
-                $completedLessonIds = $this->learningProgressService->getCompletedLessonIds(Auth::user(), $track);
-                $lessonStates = $this->learningProgressService->getLessonStates(Auth::user(), $track);
+                $completedLessonIds = $this->learningProgressService->getCompletedLessonIds($user, $track);
+                $lessonStates = $this->learningProgressService->getLessonStates($user, $track);
                 $trackExamAttempt = $trackExamSet
-                    ? $this->learningProgressService->getBestQuizAttempt(Auth::user(), $trackExamSet)
+                    ? $this->learningProgressService->getBestQuizAttempt($user, $trackExamSet)
                     : null;
+            }
+        } else {
+            $completedLessonIds = $this->guestLearningService->getCompletedLessonIds($track);
+            $completedLessonCodes = $this->guestLearningService->getCompletedLessonCodes($track);
+
+            foreach ($track->lessons as $lesson) {
+                $lessonStates[$lesson->id] = $this->guestLearningService->getLessonState($lesson, $completedLessonCodes);
             }
         }
 
@@ -92,7 +108,6 @@ class TrackController extends Controller
                 ->with('error', $trackState['reason']);
         }
 
-        // 이미 등록되어 있으면 무시
         $exists = TrackEnrollment::where('user_id', $user->id)
             ->where('learning_track_id', $track->id)
             ->exists();
@@ -109,6 +124,6 @@ class TrackController extends Controller
         }
 
         return redirect()->route('tracks.show', $slug)
-            ->with('success', '트랙에 등록되었습니다!');
+            ->with('success', '트랙 학습을 시작했어요.');
     }
 }

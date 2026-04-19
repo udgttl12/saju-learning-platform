@@ -27,6 +27,29 @@
             @endif
 
             {{-- Step 기반 레슨 플레이어 --}}
+            @if($isGuestPreview)
+                <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-500/30 dark:bg-indigo-500/10">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                                로그인하지 않고 체험 중이에요.
+                            </p>
+                            <p class="mt-1 text-xs text-indigo-600 dark:text-indigo-400">
+                                레슨 완료와 퀴즈 결과는 이 브라우저에만 임시 저장됩니다.
+                            </p>
+                        </div>
+                        <form action="{{ route('guest.login') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="redirect_to" value="{{ request()->getRequestUri() }}">
+                            <button type="submit"
+                                    class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                                게스트 로그인
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
             <div x-data="{ currentStep: 0, totalSteps: {{ $lesson->steps->count() }} }" class="space-y-4">
 
                 {{-- 진행 바 --}}
@@ -384,6 +407,32 @@
                                                 <p class="text-xs text-red-500 mt-1">합격 점수: {{ $quizSet->pass_score }}점 | 문항 수: {{ $quizSet->items->count() }}개</p>
                                             </div>
 
+                                            @php $quizState = $quizProgress[$quizSetCode] ?? null; @endphp
+                                            <div class="mb-4 p-4 bg-white dark:bg-slate-700/30 border border-gray-200 dark:border-slate-700 rounded-lg">
+                                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                                    <div>
+                                                        <p class="text-sm font-medium text-gray-800 dark:text-white">정식 퀴즈 결과가 레슨 완료 판정에 반영됩니다.</p>
+                                                        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                                                            아래 미리보기로 먼저 점검한 뒤, 저장되는 퀴즈는 별도 페이지에서 제출해주세요.
+                                                        </p>
+                                                        @if($quizState)
+                                                            <p class="text-xs mt-2 {{ $quizState['passed'] ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                                                @if($quizState['attempted'])
+                                                                    최고 점수 {{ $quizState['best_score'] }}%
+                                                                    {{ $quizState['passed'] ? '· 통과 완료' : '· 아직 통과 전' }}
+                                                                @else
+                                                                    아직 제출한 기록이 없습니다.
+                                                                @endif
+                                                            </p>
+                                                        @endif
+                                                    </div>
+                                                    <a href="{{ route('quiz.show', $quizSetCode) }}"
+                                                       class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                                                        정식 퀴즈 풀기
+                                                    </a>
+                                                </div>
+                                            </div>
+
                                             <div x-data="{
                                                 answers: {},
                                                 revealed: {},
@@ -572,7 +621,7 @@
 
                     {{-- 마지막 스텝에서 완료 버튼 --}}
                     <div x-show="currentStep === totalSteps - 1">
-                        @if($attempt->status !== 'completed')
+                        @if(!$isLessonCompleted)
                             <form action="{{ route('lessons.complete', $lesson->slug) }}" method="POST">
                                 @csrf
                                 <button type="submit"

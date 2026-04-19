@@ -34,9 +34,13 @@ class LearningTrackController extends Controller
             'difficulty_level' => 'required|integer|min:1|max:5',
             'estimated_total_minutes' => 'nullable|integer|min:0',
             'sort_order' => 'nullable|integer|min:0',
+            'unlock_rule_json' => 'nullable|json',
             'publish_status' => 'required|string|in:draft,published,archived',
         ]);
 
+        $validated['unlock_rule_json'] = ! empty($validated['unlock_rule_json'])
+            ? json_decode($validated['unlock_rule_json'], true)
+            : null;
         $validated['created_by'] = auth()->id();
         $validated['updated_by'] = auth()->id();
 
@@ -56,17 +60,21 @@ class LearningTrackController extends Controller
     public function update(Request $request, LearningTrack $learningTrack)
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:30|unique:learning_tracks,code,' . $learningTrack->id,
-            'slug' => 'required|string|max:100|unique:learning_tracks,slug,' . $learningTrack->id,
+            'code' => 'required|string|max:30|unique:learning_tracks,code,'.$learningTrack->id,
+            'slug' => 'required|string|max:100|unique:learning_tracks,slug,'.$learningTrack->id,
             'title' => 'required|string|max:200',
             'short_description' => 'nullable|string',
             'target_audience' => 'nullable|string|max:100',
             'difficulty_level' => 'required|integer|min:1|max:5',
             'estimated_total_minutes' => 'nullable|integer|min:0',
             'sort_order' => 'nullable|integer|min:0',
+            'unlock_rule_json' => 'nullable|json',
             'publish_status' => 'required|string|in:draft,published,archived',
         ]);
 
+        $validated['unlock_rule_json'] = ! empty($validated['unlock_rule_json'])
+            ? json_decode($validated['unlock_rule_json'], true)
+            : null;
         $validated['updated_by'] = auth()->id();
 
         $old = $learningTrack->toArray();

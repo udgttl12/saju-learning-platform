@@ -67,7 +67,7 @@ class YukchinQuestionGeneratorService
         $day = self::STEMS[$dayMaster] ?? null;
         $target = self::STEMS[$targetStem] ?? null;
 
-        if (!$day || !$target) {
+        if (! $day || ! $target) {
             throw new \InvalidArgumentException('알 수 없는 천간 조합입니다.');
         }
 

@@ -25,6 +25,7 @@ class QuizSet extends Model
     ];
 
     protected $casts = [
+        'learning_track_id' => 'integer',
         'difficulty_level' => 'integer',
         'pass_score' => 'integer',
         'published_at' => 'datetime',

@@ -17,7 +17,12 @@ class TwelveShinsalTrackSeeder extends Seeder
             'target_audience' => 'adult_hobby_beginner',
             'difficulty_level' => 3,
             'estimated_total_minutes' => 55,
-            'sort_order' => 7,
+            'sort_order' => 8,
+            'unlock_rule_json' => json_encode([
+                'requires' => [
+                    ['type' => 'track_exam_passed', 'code' => 'TRACK_YUKCHIN'],
+                ],
+            ], JSON_UNESCAPED_UNICODE),
             'publish_status' => 'published',
             'published_at' => now(),
             'created_by' => 1, 'updated_by' => 1,

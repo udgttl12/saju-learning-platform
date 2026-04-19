@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminAuditLog;
+use App\Models\LearningTrack;
 use App\Models\Lesson;
 use App\Models\QuizSet;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class QuizSetController extends Controller
 {
     public function index()
     {
-        $quizSets = QuizSet::with('lesson')
+        $quizSets = QuizSet::with(['lesson', 'learningTrack'])
             ->withCount('items')
             ->orderBy('id', 'desc')
             ->paginate(20);
@@ -23,13 +24,16 @@ class QuizSetController extends Controller
     public function create()
     {
         $lessons = Lesson::orderBy('title')->get();
-        return view('admin.quiz-sets.create', compact('lessons'));
+        $tracks = LearningTrack::orderBy('sort_order')->get();
+
+        return view('admin.quiz-sets.create', compact('lessons', 'tracks'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'lesson_id' => 'nullable|exists:lessons,id',
+            'learning_track_id' => 'nullable|exists:learning_tracks,id',
             'code' => 'required|string|max:30|unique:quiz_sets,code',
             'title' => 'required|string|max:200',
             'scope_type' => 'nullable|string|max:30',
@@ -51,14 +55,17 @@ class QuizSetController extends Controller
     {
         $quizSet->load('items');
         $lessons = Lesson::orderBy('title')->get();
-        return view('admin.quiz-sets.edit', compact('quizSet', 'lessons'));
+        $tracks = LearningTrack::orderBy('sort_order')->get();
+
+        return view('admin.quiz-sets.edit', compact('quizSet', 'lessons', 'tracks'));
     }
 
     public function update(Request $request, QuizSet $quizSet)
     {
         $validated = $request->validate([
             'lesson_id' => 'nullable|exists:lessons,id',
-            'code' => 'required|string|max:30|unique:quiz_sets,code,' . $quizSet->id,
+            'learning_track_id' => 'nullable|exists:learning_tracks,id',
+            'code' => 'required|string|max:30|unique:quiz_sets,code,'.$quizSet->id,
             'title' => 'required|string|max:200',
             'scope_type' => 'nullable|string|max:30',
             'description' => 'nullable|string',

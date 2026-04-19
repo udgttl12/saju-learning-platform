@@ -29,12 +29,26 @@
                     <a href="{{ route('review.show', $card->id) }}"
                        class="bg-white dark:bg-slate-800 rounded-lg shadow dark:shadow-slate-900/50 p-6 hover:shadow-md transition-shadow block">
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                                {{ $card->hanjaChar?->char_value }}
-                            </div>
-                            <div class="text-sm text-gray-500 dark:text-slate-400">
-                                {{ $card->hanjaChar?->reading_ko }} - {{ $card->hanjaChar?->meaning_ko }}
-                            </div>
+                            @if($card->isConceptCard())
+                                <div class="inline-flex items-center px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-medium mb-3">
+                                    개념 복습
+                                </div>
+                                <div class="text-base font-semibold text-gray-900 dark:text-white leading-relaxed">
+                                    {{ $card->prompt_text }}
+                                </div>
+                                @if(!empty($card->meta_json['review_title']))
+                                    <div class="text-sm text-gray-500 dark:text-slate-400 mt-2">
+                                        {{ $card->meta_json['review_title'] }}
+                                    </div>
+                                @endif
+                            @else
+                                <div class="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                                    {{ $card->hanjaChar?->char_value }}
+                                </div>
+                                <div class="text-sm text-gray-500 dark:text-slate-400">
+                                    {{ $card->hanjaChar?->reading_ko }} - {{ $card->hanjaChar?->meaning_ko }}
+                                </div>
+                            @endif
                             <div class="mt-3 flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-slate-500">
                                 <span>반복 {{ $card->repetitions }}회</span>
                                 <span>|</span>

@@ -49,7 +49,7 @@ class LearningProgressService
             $requiredTrack = $tracksByCode->get($parsed['code'])
                 ?? LearningTrack::where('code', $parsed['code'])->first();
 
-            if (!$requiredTrack) {
+            if (! $requiredTrack) {
                 continue;
             }
 
@@ -62,7 +62,7 @@ class LearningProgressService
                 default => (bool) $requiredEnrollment?->completed_at,
             };
 
-            if (!$met) {
+            if (! $met) {
                 return [
                     'unlocked' => false,
                     'reason' => $parsed['type'] === 'track_exam_passed'
@@ -102,7 +102,7 @@ class LearningProgressService
         $requirements = $lesson->unlock_rule_json['requires'] ?? [];
 
         foreach ($requirements as $requiredCode) {
-            if (!in_array($requiredCode, $completedCodes, true)) {
+            if (! in_array($requiredCode, $completedCodes, true)) {
                 return [
                     'unlocked' => false,
                     'reason' => '선행 레슨을 먼저 완료해야 합니다.',
@@ -190,7 +190,7 @@ class LearningProgressService
             ->where('learning_track_id', $track->id)
             ->first();
 
-        if (!$enrollment) {
+        if (! $enrollment) {
             return null;
         }
 
@@ -204,7 +204,7 @@ class LearningProgressService
         $progress = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100, 2) : 0;
         $trackExamSet = $this->getTrackExamSet($track);
         $requiresExam = $trackExamSet !== null;
-        $examPassed = !$requiresExam || (bool) $enrollment->passed_exam_at;
+        $examPassed = ! $requiresExam || (bool) $enrollment->passed_exam_at;
         $isCompleted = $progress >= 100 && $examPassed;
 
         $enrollment->update([

@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
         DB::table('review_logs')->truncate();
         DB::table('review_cards')->truncate();
         DB::table('lesson_attempts')->truncate();
+        DB::table('quiz_item_attempts')->truncate();
+        DB::table('quiz_attempts')->truncate();
         DB::table('quiz_items')->truncate();
         DB::table('quiz_sets')->truncate();
         DB::table('practice_strokes')->truncate();
@@ -47,6 +49,7 @@ class DatabaseSeeder extends Seeder
             QuizSeeder::class,
             SajuExampleSeeder::class,
             LessonContentEnrichSeeder::class,
+            EarthBranchAdvancedTrackSeeder::class,
             SajuStructureTrackSeeder::class,
             MyeongrihakBasicsTrackSeeder::class,
             TwelveShinsalTrackSeeder::class,

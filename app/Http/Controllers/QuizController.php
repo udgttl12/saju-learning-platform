@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\LessonAttempt;
 use App\Models\QuizSet;
 use App\Models\User;
-use App\Services\QuizService;
+use App\Services\GuestLearningService;
 use App\Services\LearningProgressService;
+use App\Services\QuizService;
 use App\Services\ReviewService;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,7 @@ class QuizController extends Controller
         private QuizService $quizService,
         private ReviewService $reviewService,
         private LearningProgressService $learningProgressService,
+        private GuestLearningService $guestLearningService,
     ) {}
 
     public function show(string $code)
@@ -27,9 +29,10 @@ class QuizController extends Controller
 
         $bestAttempt = $requestUser
             ? $this->learningProgressService->getBestQuizAttempt($requestUser, $quizSet)
-            : null;
+            : $this->toAttemptSummaryObject($this->guestLearningService->getQuizAttemptSummary($quizSet));
+        $isGuestPreview = !$requestUser;
 
-        return view('quiz.show', compact('quizSet', 'bestAttempt'));
+        return view('quiz.show', compact('quizSet', 'bestAttempt', 'isGuestPreview'));
     }
 
     public function submit(string $code, Request $request)
@@ -43,21 +46,37 @@ class QuizController extends Controller
 
         $results = $this->quizService->gradeSubmission($quizSet, $request->answers);
         $score = $this->quizService->calculateScore($results);
-        $attempt = $this->quizService->recordAttempt($request->user(), $quizSet, $results, $score, $request->answers);
+        $weakPoints = $this->quizService->summarizeWeakPoints($results);
+        $attempt = null;
+        $attemptId = null;
+        $createdReviewCards = 0;
+        $isGuestPreview = !$request->user();
 
-        $createdReviewCards = $this->reviewService->createFromQuizResult($request->user(), $results, $quizSet);
-        $this->syncLessonQuizProgress($request->user()->id, $quizSet, $score['percentage']);
+        if ($request->user()) {
+            $attempt = $this->quizService->recordAttempt($request->user(), $quizSet, $results, $score, $request->answers);
+            $attemptId = $attempt->id;
 
-        if ($quizSet->scope_type === 'track' && $quizSet->learningTrack && $attempt->passed) {
-            $this->learningProgressService->markTrackExamPassed($request->user(), $quizSet->learningTrack, $score['percentage']);
+            $createdReviewCards = $this->reviewService->createFromQuizResult($request->user(), $results, $quizSet);
+            $this->syncLessonQuizProgress($request->user()->id, $quizSet, $score['percentage']);
+
+            if ($quizSet->scope_type === 'track' && $quizSet->learningTrack && $attempt->passed) {
+                $this->learningProgressService->markTrackExamPassed($request->user(), $quizSet->learningTrack, $score['percentage']);
+            }
+        } else {
+            $attempt = $this->toAttemptSummaryObject(
+                $this->guestLearningService->storeQuizAttempt($quizSet, $score, $weakPoints)
+            );
         }
 
         session()->put("quiz_result_{$code}", [
             'results' => $results,
             'score' => $score,
             'quiz_set' => $quizSet,
-            'attempt_id' => $attempt->id,
+            'attempt_id' => $attemptId,
+            'attempt_summary' => $attempt,
+            'weak_points' => $weakPoints,
             'created_review_cards' => $createdReviewCards,
+            'is_guest' => $isGuestPreview,
         ]);
 
         return redirect()->route('quiz.result', $code);
@@ -71,10 +90,12 @@ class QuizController extends Controller
             return redirect()->route('quiz.show', $code);
         }
 
+        $isGuestPreview = (bool) ($data['is_guest'] ?? false);
         $attempt = isset($data['attempt_id'])
             ? auth()->user()?->quizAttempts()->with('quizSet')->find($data['attempt_id'])
-            : null;
-        $recommendedLessons = collect($attempt?->weak_points_json ?? [])
+            : ($isGuestPreview ? $data['attempt_summary'] ?? null : null);
+        $weakPoints = collect($attempt?->weak_points_json ?? $data['weak_points'] ?? []);
+        $recommendedLessons = $weakPoints
             ->pluck('review_lesson_code')
             ->filter()
             ->unique()
@@ -88,15 +109,37 @@ class QuizController extends Controller
             'score' => $data['score'],
             'quizSet' => $data['quiz_set'],
             'attempt' => $attempt,
+            'weakPoints' => $weakPoints,
             'recommendedLessonMap' => $recommendedLessonMap,
             'createdReviewCards' => $data['created_review_cards'] ?? 0,
+            'isGuestPreview' => $isGuestPreview,
         ]);
     }
 
     private function authorizeQuizAccess(?User $user, QuizSet $quizSet): void
     {
         if (!$user) {
-            abort(403);
+            if ($quizSet->scope_type !== 'lesson' || !$quizSet->lesson) {
+                abort(403);
+            }
+
+            $quizSet->loadMissing('lesson.learningTrack');
+
+            $trackState = $this->guestLearningService->getTrackState($quizSet->lesson->learningTrack);
+            if (!$trackState['unlocked']) {
+                abort(403);
+            }
+
+            $lessonState = $this->guestLearningService->getLessonState(
+                $quizSet->lesson,
+                $this->guestLearningService->getCompletedLessonCodes($quizSet->lesson->learningTrack)
+            );
+
+            if (!$lessonState['unlocked']) {
+                abort(403);
+            }
+
+            return;
         }
 
         if ($quizSet->lesson) {
@@ -158,5 +201,14 @@ class QuizController extends Controller
             'best_score' => max((int) ($attempt->best_score ?? 0), $percentage),
             'last_accessed_at' => now(),
         ]);
+    }
+
+    private function toAttemptSummaryObject(?array $attemptSummary): ?object
+    {
+        if (!$attemptSummary) {
+            return null;
+        }
+
+        return (object) $attemptSummary;
     }
 }

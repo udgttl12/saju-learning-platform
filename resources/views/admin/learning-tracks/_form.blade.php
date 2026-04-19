@@ -35,6 +35,12 @@
         <textarea name="short_description" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ old('short_description', $t?->short_description) }}</textarea>
     </div>
 
+    <div>
+        <label class="block text-sm font-medium text-gray-700">잠금 규칙 JSON</label>
+        <textarea name="unlock_rule_json" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm font-mono text-xs">{{ old('unlock_rule_json', $t?->unlock_rule_json ? json_encode($t->unlock_rule_json, JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) : '') }}</textarea>
+        <p class="mt-1 text-xs text-gray-500">예: {"requires":[{"type":"track_exam_passed","code":"TRACK_SAJU_STRUCTURE"}]}</p>
+    </div>
+
     <div class="grid grid-cols-3 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700">대상 수강자</label>

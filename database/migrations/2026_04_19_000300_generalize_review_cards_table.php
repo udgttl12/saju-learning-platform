@@ -9,6 +9,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
+            $this->rebuildForSqlite();
+
+            return;
+        }
+
         Schema::table('review_cards', function (Blueprint $table) {
             $table->string('target_type', 30)->default('hanja')->after('user_id')
                 ->comment('hanja|concept');
@@ -19,14 +27,10 @@ return new class extends Migration
             $table->index(['user_id', 'target_type', 'concept_key'], 'idx_review_cards_user_target_concept');
         });
 
-        $driver = DB::getDriverName();
-
         if ($driver === 'mysql') {
             DB::statement('ALTER TABLE review_cards DROP FOREIGN KEY fk_review_cards_hanja_char_id');
             DB::statement('ALTER TABLE review_cards MODIFY hanja_char_id BIGINT UNSIGNED NULL');
             DB::statement('ALTER TABLE review_cards ADD CONSTRAINT fk_review_cards_hanja_char_id FOREIGN KEY (hanja_char_id) REFERENCES hanja_chars(id) ON DELETE CASCADE ON UPDATE CASCADE');
-        } elseif ($driver === 'sqlite') {
-            $this->rebuildForSqlite();
         }
     }
 
@@ -37,7 +41,11 @@ return new class extends Migration
         if ($driver === 'sqlite') {
             DB::statement('DELETE FROM review_cards WHERE target_type = "concept"');
             $this->rebuildForSqliteDown();
-        } elseif ($driver === 'mysql') {
+
+            return;
+        }
+
+        if ($driver === 'mysql') {
             DB::statement('DELETE FROM review_cards WHERE target_type = "concept"');
             DB::statement('ALTER TABLE review_cards DROP FOREIGN KEY fk_review_cards_hanja_char_id');
             DB::statement('ALTER TABLE review_cards MODIFY hanja_char_id BIGINT UNSIGNED NOT NULL');
@@ -59,6 +67,9 @@ return new class extends Migration
     private function rebuildForSqlite(): void
     {
         DB::statement('PRAGMA foreign_keys = OFF');
+        DB::statement('DROP INDEX IF EXISTS uq_review_cards_user_hanja');
+        DB::statement('DROP INDEX IF EXISTS idx_review_cards_due_stage');
+        DB::statement('DROP INDEX IF EXISTS idx_review_cards_user_target_concept');
         Schema::rename('review_cards', 'review_cards_old');
 
         Schema::create('review_cards', function (Blueprint $table) {
@@ -100,7 +111,7 @@ return new class extends Migration
                 due_at, last_result, last_reviewed_at, created_at, updated_at
             )
             SELECT
-                id, user_id, target_type, concept_key, prompt_text, answer_payload_json, meta_json,
+                id, user_id, 'hanja', NULL, NULL, NULL, NULL,
                 hanja_char_id, source_type, source_id, stage, ease_factor, interval_days, repetitions,
                 due_at, last_result, last_reviewed_at, created_at, updated_at
             FROM review_cards_old
@@ -113,6 +124,9 @@ return new class extends Migration
     private function rebuildForSqliteDown(): void
     {
         DB::statement('PRAGMA foreign_keys = OFF');
+        DB::statement('DROP INDEX IF EXISTS uq_review_cards_user_hanja');
+        DB::statement('DROP INDEX IF EXISTS idx_review_cards_due_stage');
+        DB::statement('DROP INDEX IF EXISTS idx_review_cards_user_target_concept');
         Schema::rename('review_cards', 'review_cards_old');
 
         Schema::create('review_cards', function (Blueprint $table) {

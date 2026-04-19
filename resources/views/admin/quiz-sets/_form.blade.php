@@ -11,18 +11,6 @@
         </div>
     @endif
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700">연결 레슨</label>
-        <select name="lesson_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-            <option value="">없음</option>
-            @foreach($lessons as $lesson)
-                <option value="{{ $lesson->id }}" {{ old('lesson_id', $qs?->lesson_id) == $lesson->id ? 'selected' : '' }}>
-                    {{ $lesson->title }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700">코드 *</label>
@@ -31,8 +19,36 @@
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700">범위 유형</label>
-            <input type="text" name="scope_type" value="{{ old('scope_type', $qs?->scope_type) }}"
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            <select name="scope_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                @foreach(['lesson' => '레슨', 'track' => '트랙', 'review' => '복습'] as $value => $label)
+                    <option value="{{ $value }}" {{ old('scope_type', $qs?->scope_type ?? 'lesson') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700">연결 레슨</label>
+            <select name="lesson_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="">없음</option>
+                @foreach($lessons as $lesson)
+                    <option value="{{ $lesson->id }}" {{ old('lesson_id', $qs?->lesson_id) == $lesson->id ? 'selected' : '' }}>
+                        {{ $lesson->title }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">연결 트랙</label>
+            <select name="learning_track_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="">없음</option>
+                @foreach($tracks as $track)
+                    <option value="{{ $track->id }}" {{ old('learning_track_id', $qs?->learning_track_id) == $track->id ? 'selected' : '' }}>
+                        {{ $track->title }}
+                    </option>
+                @endforeach
+            </select>
         </div>
     </div>
 

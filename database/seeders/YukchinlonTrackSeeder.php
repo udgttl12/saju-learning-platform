@@ -17,7 +17,12 @@ class YukchinlonTrackSeeder extends Seeder
             'target_audience' => 'adult_hobby_beginner',
             'difficulty_level' => 3,
             'estimated_total_minutes' => 60,
-            'sort_order' => 8,
+            'sort_order' => 7,
+            'unlock_rule_json' => json_encode([
+                'requires' => [
+                    ['type' => 'track_exam_passed', 'code' => 'TRACK_SAJU_STRUCTURE'],
+                ],
+            ], JSON_UNESCAPED_UNICODE),
             'publish_status' => 'published',
             'published_at' => now(),
             'created_by' => 1, 'updated_by' => 1,

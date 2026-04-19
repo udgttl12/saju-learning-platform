@@ -45,7 +45,8 @@ return new class extends Migration
 
         Schema::table('quiz_sets', function (Blueprint $table) {
             $table->dropIndex('idx_quiz_sets_track_scope');
-            $table->dropConstrainedForeignId('learning_track_id');
+            $table->dropForeign('fk_quiz_sets_learning_track_id');
+            $table->dropColumn('learning_track_id');
         });
 
         Schema::table('track_enrollments', function (Blueprint $table) {

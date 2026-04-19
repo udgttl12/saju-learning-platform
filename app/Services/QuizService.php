@@ -14,7 +14,7 @@ class QuizService
     {
         return QuizSet::where('code', $code)
             ->where('publish_status', 'published')
-            ->with(['items', 'lesson', 'learningTrack'])
+            ->with(['items', 'lesson.learningTrack', 'learningTrack'])
             ->firstOrFail();
     }
 
@@ -57,7 +57,7 @@ class QuizService
             'earned_points' => $earnedPoints,
             'percentage' => $percentage,
             'total_items' => count($results),
-            'correct_count' => count(array_filter($results, fn($r) => $r['correct'])),
+            'correct_count' => count(array_filter($results, fn ($r) => $r['correct'])),
         ];
     }
 
@@ -121,7 +121,7 @@ class QuizService
                     default => '개념 확인',
                 };
 
-            if (!isset($weakPoints[$key])) {
+            if (! isset($weakPoints[$key])) {
                 $weakPoints[$key] = [
                     'key' => $key,
                     'label' => $label,
@@ -156,6 +156,7 @@ class QuizService
     private function gradeMultipleChoice(array $payload, mixed $userAnswer): bool
     {
         $correctIndex = $payload['correct_choice_index'] ?? null;
+
         return $correctIndex !== null && (int) $userAnswer === (int) $correctIndex;
     }
 
@@ -165,6 +166,7 @@ class QuizService
         if ($correctBoolean === null) {
             return false;
         }
+
         return (bool) $correctBoolean === filter_var($userAnswer, FILTER_VALIDATE_BOOLEAN);
     }
 

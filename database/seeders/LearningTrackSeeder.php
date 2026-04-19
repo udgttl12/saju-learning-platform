@@ -20,6 +20,7 @@ class LearningTrackSeeder extends Seeder
                 'difficulty_level' => 1,
                 'estimated_total_minutes' => 40,
                 'sort_order' => 1,
+                'unlock_rule_json' => json_encode(['requires' => []], JSON_UNESCAPED_UNICODE),
                 'publish_status' => 'published',
                 'published_at' => now(),
                 'created_by' => 1,
@@ -37,6 +38,11 @@ class LearningTrackSeeder extends Seeder
                 'difficulty_level' => 1,
                 'estimated_total_minutes' => 35,
                 'sort_order' => 2,
+                'unlock_rule_json' => json_encode([
+                    'requires' => [
+                        ['type' => 'track_completed', 'code' => 'TRACK_PREP'],
+                    ],
+                ], JSON_UNESCAPED_UNICODE),
                 'publish_status' => 'published',
                 'published_at' => now(),
                 'created_by' => 1,
@@ -54,6 +60,11 @@ class LearningTrackSeeder extends Seeder
                 'difficulty_level' => 2,
                 'estimated_total_minutes' => 80,
                 'sort_order' => 3,
+                'unlock_rule_json' => json_encode([
+                    'requires' => [
+                        ['type' => 'track_completed', 'code' => 'TRACK_FIVE_ELEMENTS'],
+                    ],
+                ], JSON_UNESCAPED_UNICODE),
                 'publish_status' => 'published',
                 'published_at' => now(),
                 'created_by' => 1,
@@ -71,6 +82,11 @@ class LearningTrackSeeder extends Seeder
                 'difficulty_level' => 2,
                 'estimated_total_minutes' => 90,
                 'sort_order' => 4,
+                'unlock_rule_json' => json_encode([
+                    'requires' => [
+                        ['type' => 'track_completed', 'code' => 'TRACK_HEAVENLY_STEMS'],
+                    ],
+                ], JSON_UNESCAPED_UNICODE),
                 'publish_status' => 'published',
                 'published_at' => now(),
                 'created_by' => 1,
@@ -87,7 +103,12 @@ class LearningTrackSeeder extends Seeder
                 'target_audience' => 'adult_hobby_beginner',
                 'difficulty_level' => 2,
                 'estimated_total_minutes' => 50,
-                'sort_order' => 5,
+                'sort_order' => 9,
+                'unlock_rule_json' => json_encode([
+                    'requires' => [
+                        ['type' => 'track_exam_passed', 'code' => 'TRACK_TWELVE_SHINSAL'],
+                    ],
+                ], JSON_UNESCAPED_UNICODE),
                 'publish_status' => 'published',
                 'published_at' => now(),
                 'created_by' => 1,

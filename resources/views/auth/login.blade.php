@@ -44,4 +44,17 @@
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-6 border-t border-gray-200 pt-6">
+        <form method="POST" action="{{ route('guest.login') }}">
+            @csrf
+            <button type="submit"
+                    class="w-full rounded-md border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                게스트 로그인으로 바로 체험하기
+            </button>
+        </form>
+        <p class="mt-2 text-center text-xs text-gray-500">
+            임시 체험 계정을 만들어 진도와 북마크를 바로 저장할 수 있어요.
+        </p>
+    </div>
 </x-guest-layout>

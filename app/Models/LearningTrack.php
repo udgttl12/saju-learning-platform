@@ -70,9 +70,11 @@ class LearningTrack extends Model
                 'id',
                 'status',
                 'progress_percent',
+                'track_exam_best_score',
                 'started_at',
                 'last_accessed_at',
                 'completed_at',
+                'passed_exam_at',
                 'created_at',
                 'updated_at',
             ]);

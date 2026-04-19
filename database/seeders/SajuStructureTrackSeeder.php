@@ -19,6 +19,11 @@ class SajuStructureTrackSeeder extends Seeder
             'difficulty_level' => 3,
             'estimated_total_minutes' => 60,
             'sort_order' => 6,
+            'unlock_rule_json' => json_encode([
+                'requires' => [
+                    ['type' => 'track_exam_passed', 'code' => 'TRACK_EARTH_BRANCH_ADVANCED'],
+                ],
+            ], JSON_UNESCAPED_UNICODE),
             'publish_status' => 'published',
             'published_at' => now(),
             'created_by' => 1,
@@ -40,7 +45,7 @@ class SajuStructureTrackSeeder extends Seeder
             'lesson_type' => 'concept',
             'difficulty_level' => 3,
             'estimated_minutes' => 15,
-            'unlock_rule_json' => json_encode(['requires' => ['LESSON_CHART_001']]),
+            'unlock_rule_json' => json_encode(['requires' => []]),
             'sort_order' => 1,
             'publish_status' => 'published',
             'published_at' => now(),

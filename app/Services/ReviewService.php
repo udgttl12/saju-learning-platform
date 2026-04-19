@@ -30,12 +30,12 @@ class ReviewService
 
             $card = null;
 
-            if (!empty($result['target_hanja_char_id'])) {
+            if (! empty($result['target_hanja_char_id'])) {
                 $card = ReviewCard::where('user_id', $user->id)
                     ->where('target_type', 'hanja')
                     ->where('hanja_char_id', $result['target_hanja_char_id'])
                     ->first();
-            } elseif (!empty($result['concept_key'])) {
+            } elseif (! empty($result['concept_key'])) {
                 $card = ReviewCard::where('user_id', $user->id)
                     ->where('target_type', 'concept')
                     ->where('concept_key', $result['concept_key'])
