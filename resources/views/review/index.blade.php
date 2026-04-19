@@ -38,7 +38,7 @@
                             <div class="mt-3 flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-slate-500">
                                 <span>반복 {{ $card->repetitions }}회</span>
                                 <span>|</span>
-                                <span>{{ $card->stage }}</span>
+                                <span>{{ \App\Support\UiLabel::reviewStage($card->stage) }}</span>
                             </div>
                         </div>
                     </a>

@@ -77,6 +77,11 @@ class Lesson extends Model
         return $this->hasMany(QuizSet::class);
     }
 
+    public function publishedQuizSets(): HasMany
+    {
+        return $this->quizSets()->where('publish_status', 'published');
+    }
+
     public function attempts(): HasMany
     {
         return $this->hasMany(LessonAttempt::class);

@@ -136,7 +136,7 @@
         <!-- 오행 미리보기 -->
         <section class="max-w-7xl mx-auto px-6 lg:px-8 py-24 relative">
             <div class="text-center mb-16 relative z-10">
-                <span class="inline-block text-amber-500 font-bold tracking-[0.2em] text-sm mb-3">PREVIEW</span>
+                <span class="inline-block text-amber-500 font-bold tracking-[0.2em] text-sm mb-3">미리보기</span>
                 <h2 class="text-3xl font-bold text-white">핵심 한자 미리보기</h2>
                 <p class="mt-4 text-slate-400 font-light text-lg">만물의 기본, 오행 5글자부터 시작해볼까요?</p>
             </div>

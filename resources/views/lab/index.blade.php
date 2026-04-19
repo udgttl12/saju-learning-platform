@@ -37,7 +37,7 @@
 
                             <div class="mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-slate-500">
                                 <span>{{ $example->gender === 'M' ? '남성' : ($example->gender === 'F' ? '여성' : '') }}</span>
-                                <span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-medium">Lv.{{ $example->difficulty_level }}</span>
+                                <span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-medium">레벨 {{ $example->difficulty_level }}</span>
                             </div>
                         </div>
                     </a>

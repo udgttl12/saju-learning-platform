@@ -13,6 +13,7 @@ class QuizSet extends Model
 
     protected $fillable = [
         'lesson_id',
+        'learning_track_id',
         'code',
         'title',
         'scope_type',
@@ -34,8 +35,18 @@ class QuizSet extends Model
         return $this->belongsTo(Lesson::class);
     }
 
+    public function learningTrack(): BelongsTo
+    {
+        return $this->belongsTo(LearningTrack::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(QuizItem::class)->orderBy('sort_order');
+    }
+
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class)->orderByDesc('id');
     }
 }

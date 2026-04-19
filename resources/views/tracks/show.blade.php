@@ -25,6 +25,11 @@
                     {{ session('error') }}
                 </div>
             @endif
+            @if(!$trackState['unlocked'])
+                <div class="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 px-4 py-3 rounded-lg text-sm">
+                    {{ $trackState['reason'] }}
+                </div>
+            @endif
 
             {{-- 트랙 정보 카드 --}}
             <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
@@ -58,15 +63,26 @@
                                 <div class="w-48 bg-gray-200 dark:bg-slate-700 rounded-full h-2.5">
                                     <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ $enrollment->progress_percent }}%"></div>
                                 </div>
+                                @if($trackExamSet)
+                                    <div class="mt-2 text-xs {{ $enrollment->passed_exam_at ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                        {{ $enrollment->passed_exam_at ? '트랙 시험 통과 완료' : '트랙 시험 대기 중' }}
+                                    </div>
+                                @endif
                             </div>
                         @else
-                            <form action="{{ route('tracks.enroll', $track->slug) }}" method="POST">
-                                @csrf
-                                <button type="submit"
-                                        class="inline-flex items-center px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
-                                    학습 시작하기
-                                </button>
-                            </form>
+                            @if($trackState['unlocked'])
+                                <form action="{{ route('tracks.enroll', $track->slug) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                            class="inline-flex items-center px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+                                        학습 시작하기
+                                    </button>
+                                </form>
+                            @else
+                                <div class="text-sm text-slate-500 dark:text-slate-400">
+                                    선행 트랙을 마치면 시작할 수 있습니다.
+                                </div>
+                            @endif
                         @endif
                     @else
                         <a href="{{ route('login') }}"
@@ -84,15 +100,8 @@
                     @foreach($track->lessons as $index => $lesson)
                         @php
                             $isCompleted = in_array($lesson->id, $completedLessonIds);
-                            // 잠금 상태: 첫 레슨은 항상 열림, 이전 레슨이 완료되어야 다음 열림
-                            $isLocked = false;
-                            if ($enrollment && $index > 0) {
-                                $prevLesson = $track->lessons[$index - 1];
-                                $isLocked = !in_array($prevLesson->id, $completedLessonIds);
-                            }
-                            if (!$enrollment) {
-                                $isLocked = $index > 0; // 미등록 시 첫 번째만 표시
-                            }
+                            $lessonState = $lessonStates[$lesson->id] ?? ['unlocked' => $index === 0];
+                            $isLocked = !$enrollment || !$lessonState['unlocked'];
                         @endphp
 
                         @if(!$isLocked && $enrollment)
@@ -123,6 +132,9 @@
                                 @if($lesson->objective)
                                     <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{{ $lesson->objective }}</p>
                                 @endif
+                                @if($isLocked && !empty($lessonState['reason']))
+                                    <p class="text-xs text-rose-500 dark:text-rose-400 mt-1">{{ $lessonState['reason'] }}</p>
+                                @endif
                             </div>
 
                             {{-- 메타 + 화살표 --}}
@@ -142,6 +154,41 @@
                     @endforeach
                 </div>
             </div>
+
+            @if($enrollment && $trackExamSet)
+                <div class="bg-white dark:bg-slate-800 overflow-hidden shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 dark:text-white">트랙 종료 시험</h3>
+                            <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">{{ $trackExamSet->title }}</p>
+                            @if($trackExamSet->description)
+                                <p class="text-sm text-gray-600 dark:text-slate-300 mt-2">{{ $trackExamSet->description }}</p>
+                            @endif
+                            <div class="mt-3 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-slate-400">
+                                <span>합격 기준 {{ $trackExamSet->pass_score }}%</span>
+                                @if($trackExamAttempt)
+                                    <span>최고 점수 {{ $trackExamAttempt->score_percentage }}%</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-start md:items-end gap-2">
+                            @if($enrollment->passed_exam_at)
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                                    통과 완료
+                                </span>
+                            @elseif($allLessonsCompleted)
+                                <a href="{{ route('quiz.show', $trackExamSet->code) }}"
+                                   class="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
+                                    트랙 시험 보기
+                                </a>
+                            @else
+                                <span class="text-sm text-amber-600 dark:text-amber-400">모든 레슨 완료 후 응시 가능</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

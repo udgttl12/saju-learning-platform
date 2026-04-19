@@ -1,4 +1,12 @@
-@php $l = $lesson ?? null; @endphp
+@php
+    $l = $lesson ?? null;
+    $lessonTypeOptions = \App\Support\UiLabel::lessonTypes();
+    $selectedLessonType = old('lesson_type', $l?->lesson_type ?? 'lecture');
+
+    if ($selectedLessonType && ! array_key_exists($selectedLessonType, $lessonTypeOptions)) {
+        $lessonTypeOptions[$selectedLessonType] = $selectedLessonType;
+    }
+@endphp
 
 <div class="bg-white rounded-lg shadow p-6 space-y-4">
     @if ($errors->any())
@@ -55,8 +63,13 @@
     <div class="grid grid-cols-3 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700">레슨 유형 *</label>
-            <input type="text" name="lesson_type" value="{{ old('lesson_type', $l?->lesson_type ?? 'lecture') }}" required
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            <select name="lesson_type" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                @foreach($lessonTypeOptions as $value => $label)
+                    <option value="{{ $value }}" {{ $selectedLessonType === $value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700">난이도 (1~5) *</label>

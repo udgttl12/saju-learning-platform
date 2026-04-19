@@ -52,11 +52,18 @@
                 {{-- 문제 카드 --}}
                 <template x-for="(q, qi) in questions" :key="qi">
                     <div x-show="current === qi" class="bg-white dark:bg-white/5 backdrop-blur-sm border border-gray-200 dark:border-white/10 rounded-2xl overflow-hidden">
-                        {{-- 문제 번호 + 한자 --}}
+                        {{-- 문제 번호 + 한자/프롬프트 --}}
                         <div class="p-8 text-center border-b border-gray-200 dark:border-white/10">
                             <span class="text-xs text-gray-500 dark:text-slate-500" x-text="'Q' + (qi + 1)"></span>
-                            <div class="text-6xl sm:text-8xl md:text-9xl font-serif text-gray-900 dark:text-white my-6" x-text="q.char_value"></div>
-                            <p class="text-gray-600 dark:text-slate-400">이 한자의 뜻은?</p>
+                            <template x-if="q.has_char">
+                                <div>
+                                    <div class="text-6xl sm:text-8xl md:text-9xl font-serif text-gray-900 dark:text-white my-6" x-text="q.char_value"></div>
+                                    <p class="text-gray-600 dark:text-slate-400" x-text="q.prompt || '이 한자의 뜻은?'"></p>
+                                </div>
+                            </template>
+                            <template x-if="!q.has_char">
+                                <p class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white my-4 leading-relaxed" x-text="q.prompt"></p>
+                            </template>
                         </div>
 
                         {{-- 선택지 --}}
@@ -92,10 +99,20 @@
                         {{-- 정답 해설 --}}
                         <div x-show="submitted[qi] && !isCorrectChoice(qi, answers[qi])" x-cloak
                             class="mx-6 mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-xl">
-                            <p class="text-sm text-amber-700 dark:text-amber-400">
-                                <strong x-text="q.char_value"></strong>의 뜻은
-                                <strong x-text="q.meaning_ko + ' (' + q.reading_ko + ')'"></strong>입니다.
-                            </p>
+                            <template x-if="q.has_char">
+                                <p class="text-sm text-amber-700 dark:text-amber-400">
+                                    <strong x-text="q.char_value"></strong>의 뜻은
+                                    <strong x-text="q.meaning_ko + (q.reading_ko ? ' (' + q.reading_ko + ')' : '')"></strong>입니다.
+                                </p>
+                            </template>
+                            <template x-if="!q.has_char">
+                                <p class="text-sm text-amber-700 dark:text-amber-400">
+                                    정답: <strong x-text="q.meaning_ko"></strong>
+                                    <template x-if="q.explanation">
+                                        <span class="block mt-1 text-xs text-amber-600/80 dark:text-amber-400/80" x-text="q.explanation"></span>
+                                    </template>
+                                </p>
+                            </template>
                         </div>
                     </div>
                 </template>

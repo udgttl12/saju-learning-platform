@@ -30,8 +30,8 @@
 
 | 영역 | 선택 | 비고 |
 |------|------|------|
-| **웹 프레임워크** | Laravel 13 | Starter kit + 인증 + 세션 기반 |
-| **동적 UI** | Livewire 4 + Blade + Alpine.js | SPA 없이 반응형 UI |
+| **웹 프레임워크** | Laravel 13 | Laravel Breeze 기반 인증 + 세션 |
+| **동적 UI** | Blade + Alpine.js | 서버 렌더링 + form 라운드트립 + Alpine 클라이언트 상태. Livewire는 MVP 범위 밖(Phase 2 재검토). |
 | **데이터베이스** | MySQL 8 | utf8mb4, 스키마/시드 SQL 준비 완료 |
 | **쓰기 캔버스** | HTML Canvas + Pointer Events | mouse/pen/touch 통합 |
 | **파일 저장** | S3 호환 스토리지 | 획순 SVG, 가이드 이미지 |
@@ -137,8 +137,8 @@ User ──1:N──> Bookmark
 |------|---------|------|
 | **Guest** | 홈, 샘플 레슨, 샘플 만세력 열람 | 진행 저장 불가, 복습 제한 |
 | **Member** | 진행률, 복습 카드, 즐겨찾기, 마이페이지 | 기본 사용자 |
-| **Editor** | 한자/레슨/퀴즈 등록 및 수정 | 콘텐츠 운영자 |
-| **Admin** | 전체 CMS, 권한 관리, 운영 로그 | 최고 관리자 |
+| **Admin** | 전체 CMS, 운영 로그 | `users.role === 'admin'` 단일 판정 (`AdminMiddleware`) |
+| **Editor** _(Phase 2 예정)_ | 한자/레슨/퀴즈 등록 및 수정 | 현재 미구현. 운영자 권한은 Admin으로 흡수. |
 
 ---
 
@@ -185,9 +185,9 @@ User ──1:N──> Bookmark
 
 | # | 작업 | 상세 |
 |---|------|------|
-| 0-1 | 개발 환경 구성 | PHP 8.4, Composer, Node.js, MySQL 8, Miniforge (Python) |
-| 0-2 | Laravel 13 프로젝트 생성 | `laravel new` + Starter Kit |
-| 0-3 | Livewire 4 설치 | `composer require livewire/livewire` |
+| 0-1 | 개발 환경 구성 | PHP 8.3+, Composer, Node.js, MySQL 8, Miniforge (Python) |
+| 0-2 | Laravel 13 프로젝트 생성 | `laravel new` + Laravel Breeze (Blade stack) |
+| 0-3 | Alpine.js + Tailwind 설정 | Breeze 기본 포함. Livewire는 MVP에서 미사용. |
 | 0-4 | DB 마이그레이션 적용 | `docs/sql/database/migrations/` → `database/migrations/` 복사 후 `php artisan migrate` |
 | 0-5 | Eloquent Model 적용 | `docs/seeder/app/Models/` → `app/Models/` 복사 |
 | 0-6 | Factory 적용 | `docs/seeder/database/factories/` → `database/factories/` 복사 |
@@ -195,7 +195,7 @@ User ──1:N──> Bookmark
 | 0-8 | 인증 골격 | Laravel Breeze/Fortify 기반 이메일 가입/로그인 |
 | 0-9 | 공통 레이아웃 | Blade 레이아웃, Tailwind CSS, 모바일 반응형 기본 |
 | 0-10 | 라우트 골격 | 사용자 영역 + 관리자 영역 라우트 등록 |
-| 0-11 | 권한/미들웨어 | Guest/Member/Editor/Admin 역할 미들웨어 |
+| 0-11 | 권한/미들웨어 | Guest/Member/Admin 역할 미들웨어 (Editor는 Phase 2) |
 | 0-12 | Git 설정 | .gitignore, 브랜치 전략, CLAUDE.md |
 
 **산출물**: 프로젝트 기동 가능, DB 스키마/시드 적용 완료, 인증 동작
@@ -298,89 +298,64 @@ User ──1:N──> Bookmark
 
 ## 8. 파일 구조 (예상)
 
+> 현재 레포 기준 실제 구조. 관리자 라우트는 별도 파일 없이 `routes/web.php` 하나에서 `->prefix('admin')->middleware(['auth','admin'])` 그룹으로 구성된다.
+
 ```
 saju-learning-platform/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
-│   │   │   ├── HomeController.php
+│   │   │   ├── DashboardController.php
 │   │   │   ├── OnboardingController.php
 │   │   │   ├── TrackController.php
 │   │   │   ├── LessonController.php
-│   │   │   ├── CharacterController.php
-│   │   │   ├── PracticeController.php
+│   │   │   ├── HanjaCharController.php
+│   │   │   ├── QuizController.php
 │   │   │   ├── ReviewController.php
 │   │   │   ├── DictionaryController.php
 │   │   │   ├── LabController.php
-│   │   │   ├── MyPageController.php
+│   │   │   ├── ExamController.php
+│   │   │   ├── BookmarkController.php
+│   │   │   ├── ProfileController.php
 │   │   │   └── Admin/
-│   │   │       ├── CharacterController.php
+│   │   │       ├── AdminDashboardController.php
+│   │   │       ├── HanjaCharController.php
+│   │   │       ├── LearningTrackController.php
 │   │   │       ├── LessonController.php
-│   │   │       ├── QuizController.php
-│   │   │       ├── ExampleController.php
+│   │   │       ├── QuizSetController.php
+│   │   │       ├── SajuExampleController.php
 │   │   │       └── AuditLogController.php
 │   │   └── Middleware/
-│   │       └── CheckRole.php
-│   ├── Livewire/
-│   │   ├── Home/
-│   │   │   └── Dashboard.php
-│   │   ├── Learning/
-│   │   │   ├── TrackList.php
-│   │   │   ├── LessonPlayer.php
-│   │   │   └── StepRenderer.php
-│   │   ├── Hanja/
-│   │   │   ├── CardDetail.php
-│   │   │   └── CardGrid.php
-│   │   ├── Practice/
-│   │   │   └── WritingCanvas.php
-│   │   ├── Quiz/
-│   │   │   ├── QuizPlayer.php
-│   │   │   └── ReviewQueue.php
-│   │   ├── Dictionary/
-│   │   │   └── SearchList.php
-│   │   ├── Lab/
-│   │   │   └── SampleChart.php
-│   │   └── MyPage/
-│   │       └── ProgressDashboard.php
-│   ├── Models/  (docs/seeder에서 복사)
-│   │   ├── User.php
-│   │   ├── Profile.php
-│   │   ├── LearningTrack.php
-│   │   ├── ... (21개 모델)
-│   │   └── AdminAuditLog.php
+│   │       ├── AdminMiddleware.php
+│   │       └── EnsureOnboardingCompleted.php
+│   ├── Models/           # 21개 Eloquent 모델 (User, Profile, LearningTrack, Lesson, LessonStep, HanjaChar, ... , AdminAuditLog)
 │   └── Services/
-│       ├── LearningProgressService.php
-│       ├── ReviewSchedulerService.php
-│       ├── QuizScoringService.php
-│       └── OnboardingService.php
+│       ├── QuizService.php
+│       └── ReviewService.php
+├── bootstrap/
+│   └── app.php           # 미들웨어 alias(admin, onboarding) 등록
 ├── database/
-│   ├── migrations/  (docs/sql에서 복사)
-│   ├── factories/   (docs/seeder에서 복사)
-│   └── seeders/
-│       ├── DatabaseSeeder.php
-│       ├── UserSeeder.php
-│       ├── LearningTrackSeeder.php
-│       ├── LessonSeeder.php
-│       ├── HanjaGroupSeeder.php
-│       ├── HanjaCharSeeder.php
-│       ├── QuizSeeder.php
-│       └── SajuExampleSeeder.php
+│   ├── migrations/       # 22개 마이그레이션
+│   ├── factories/
+│   └── seeders/          # DatabaseSeeder가 콘텐츠 테이블 truncate 후 재시드
 ├── resources/
 │   ├── views/
-│   │   ├── layouts/
-│   │   │   └── app.blade.php
-│   │   ├── livewire/
-│   │   ├── home.blade.php
-│   │   └── admin/
-│   ├── css/
+│   │   ├── layouts/      # app / admin / guest / navigation
+│   │   ├── components/   # Breeze 기본 Blade 컴포넌트
+│   │   ├── <도메인>/      # tracks, lessons, hanja, quiz, review, lab, dictionary, exam, bookmarks, profile, admin
+│   │   └── dashboard.blade.php
+│   ├── css/app.css       # Tailwind (darkMode: class)
 │   └── js/
-│       └── canvas.js  (쓰기 캔버스 로직)
+│       ├── app.js        # Alpine.js + axios 부트스트랩
+│       └── bootstrap.js
 ├── routes/
-│   ├── web.php
-│   └── admin.php
-├── docs/  (기획 문서 패키지)
-├── tests/
-└── plan.md
+│   ├── web.php           # 사용자 + 관리자 라우트 (단일 파일)
+│   ├── auth.php          # Breeze 인증
+│   └── console.php
+├── docs/                 # 기획 문서 패키지 + 초기 이관 자산(sql/, seeder/)
+├── tests/                # Feature / Unit (phpunit, in-memory sqlite)
+├── plan.md
+└── CLAUDE.md
 ```
 
 ---
@@ -407,8 +382,9 @@ conda activate saju
 # Laravel 프로젝트 생성
 composer create-project laravel/laravel . "^13.0"
 
-# Livewire 설치
-composer require livewire/livewire "^4.0"
+# Laravel Breeze (Blade stack) 설치
+composer require laravel/breeze --dev
+php artisan breeze:install blade
 
 # 프론트엔드 빌드
 npm install
@@ -512,7 +488,7 @@ docs 폴더에 이미 준비된 개발 자산 목록:
 - [ ] PHP 8.4, Composer, Node.js, MySQL 8 설치 확인
 - [ ] Miniforge로 Python 환경 구성
 - [ ] Laravel 13 프로젝트 생성
-- [ ] Livewire 4, Tailwind CSS 설치
+- [ ] Laravel Breeze (Blade) + Tailwind CSS 설치
 - [ ] `docs/sql/database/migrations/` → `database/migrations/` 복사
 - [ ] `docs/seeder/app/Models/` → `app/Models/` 복사
 - [ ] `docs/seeder/database/factories/` → `database/factories/` 복사
@@ -521,7 +497,7 @@ docs 폴더에 이미 준비된 개발 자산 목록:
 - [ ] Laravel Breeze 인증 설정
 - [ ] 공통 Blade 레이아웃 + Tailwind 반응형
 - [ ] 라우트 골격 (web.php, admin.php)
-- [ ] 역할 미들웨어 (Guest/Member/Editor/Admin)
+- [ ] 역할 미들웨어 (Guest/Member/Admin — Editor는 Phase 2)
 
 ### Phase 1: 핵심 학습 (Sprint 1-2)
 

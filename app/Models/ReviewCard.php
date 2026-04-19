@@ -13,6 +13,11 @@ class ReviewCard extends Model
 
     protected $fillable = [
         'user_id',
+        'target_type',
+        'concept_key',
+        'prompt_text',
+        'answer_payload_json',
+        'meta_json',
         'hanja_char_id',
         'source_type',
         'source_id',
@@ -26,6 +31,8 @@ class ReviewCard extends Model
     ];
 
     protected $casts = [
+        'answer_payload_json' => 'array',
+        'meta_json' => 'array',
         'source_id' => 'integer',
         'ease_factor' => 'decimal:2',
         'interval_days' => 'integer',
@@ -47,5 +54,17 @@ class ReviewCard extends Model
     public function logs(): HasMany
     {
         return $this->hasMany(ReviewLog::class)->orderByDesc('reviewed_at');
+    }
+
+    public function isConceptCard(): bool
+    {
+        return $this->target_type === 'concept';
+    }
+
+    public function answerSummary(): ?string
+    {
+        return $this->answer_payload_json['answer_label']
+            ?? $this->answer_payload_json['correct_answer']
+            ?? null;
     }
 }

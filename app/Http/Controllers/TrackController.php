@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\LearningTrack;
 use App\Models\TrackEnrollment;
-use App\Models\LessonAttempt;
+use App\Services\LearningProgressService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TrackController extends Controller
 {
+    public function __construct(
+        private LearningProgressService $learningProgressService
+    ) {}
+
     public function index()
     {
         $tracks = LearningTrack::where('publish_status', 'published')
@@ -17,15 +21,15 @@ class TrackController extends Controller
             ->withCount('lessons')
             ->get();
 
-        // 로그인 상태라면 등록 정보도 가져오기
-        $enrolledTrackIds = [];
-        if (Auth::check()) {
-            $enrolledTrackIds = TrackEnrollment::where('user_id', Auth::id())
-                ->pluck('learning_track_id')
-                ->toArray();
-        }
+        $trackStates = $this->learningProgressService->getTrackStates(Auth::user(), $tracks);
+        $enrolledTrackIds = collect($trackStates)
+            ->filter(fn ($state) => $state['enrollment'] !== null)
+            ->keys()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
 
-        return view('tracks.index', compact('tracks', 'enrolledTrackIds'));
+        return view('tracks.index', compact('tracks', 'enrolledTrackIds', 'trackStates'));
     }
 
     public function show(string $slug)
@@ -37,8 +41,13 @@ class TrackController extends Controller
             }])
             ->firstOrFail();
 
+        $trackState = $this->learningProgressService->getTrackState(Auth::user(), $track);
         $enrollment = null;
         $completedLessonIds = [];
+        $lessonStates = [];
+        $trackExamSet = $this->learningProgressService->getTrackExamSet($track);
+        $trackExamAttempt = null;
+        $allLessonsCompleted = false;
 
         if (Auth::check()) {
             $enrollment = TrackEnrollment::where('user_id', Auth::id())
@@ -46,15 +55,27 @@ class TrackController extends Controller
                 ->first();
 
             if ($enrollment) {
-                $completedLessonIds = LessonAttempt::where('user_id', Auth::id())
-                    ->whereIn('lesson_id', $track->lessons->pluck('id'))
-                    ->where('status', 'completed')
-                    ->pluck('lesson_id')
-                    ->toArray();
+                $completedLessonIds = $this->learningProgressService->getCompletedLessonIds(Auth::user(), $track);
+                $lessonStates = $this->learningProgressService->getLessonStates(Auth::user(), $track);
+                $trackExamAttempt = $trackExamSet
+                    ? $this->learningProgressService->getBestQuizAttempt(Auth::user(), $trackExamSet)
+                    : null;
             }
         }
 
-        return view('tracks.show', compact('track', 'enrollment', 'completedLessonIds'));
+        $allLessonsCompleted = $track->lessons->isNotEmpty()
+            && count($completedLessonIds) >= $track->lessons->count();
+
+        return view('tracks.show', compact(
+            'track',
+            'trackState',
+            'enrollment',
+            'completedLessonIds',
+            'lessonStates',
+            'trackExamSet',
+            'trackExamAttempt',
+            'allLessonsCompleted',
+        ));
     }
 
     public function enroll(string $slug)
@@ -64,6 +85,12 @@ class TrackController extends Controller
             ->firstOrFail();
 
         $user = Auth::user();
+        $trackState = $this->learningProgressService->getTrackState($user, $track);
+
+        if (!$trackState['unlocked']) {
+            return redirect()->route('tracks.show', $slug)
+                ->with('error', $trackState['reason']);
+        }
 
         // 이미 등록되어 있으면 무시
         $exists = TrackEnrollment::where('user_id', $user->id)

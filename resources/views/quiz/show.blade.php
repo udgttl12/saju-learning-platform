@@ -1,8 +1,31 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ $quizSet->title }}
-        </h2>
+        <div class="flex items-center justify-between gap-4">
+            <div>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                    {{ $quizSet->title }}
+                </h2>
+                <div class="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                        {{ $quizSet->scope_type === 'track' ? '트랙 시험' : ($quizSet->scope_type === 'review' ? '복습 퀴즈' : '레슨 퀴즈') }}
+                    </span>
+                    @if($quizSet->learningTrack)
+                        <span>{{ $quizSet->learningTrack->title }}</span>
+                    @elseif($quizSet->lesson)
+                        <span>{{ $quizSet->lesson->title }}</span>
+                    @endif
+                </div>
+            </div>
+            @if($quizSet->learningTrack)
+                <a href="{{ route('tracks.show', $quizSet->learningTrack->slug) }}" class="text-sm text-gray-500 hover:text-gray-700">
+                    트랙으로
+                </a>
+            @elseif($quizSet->lesson)
+                <a href="{{ route('lessons.show', $quizSet->lesson->slug) }}" class="text-sm text-gray-500 hover:text-gray-700">
+                    레슨으로
+                </a>
+            @endif
+        </div>
     </x-slot>
 
     <div class="py-8">
@@ -10,6 +33,17 @@
             @if($quizSet->description)
                 <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm">
                     {{ $quizSet->description }}
+                </div>
+            @endif
+
+            @if($bestAttempt)
+                <div class="mb-6 bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg text-sm">
+                    이전 최고 점수는 <span class="font-semibold">{{ $bestAttempt->score_percentage }}%</span>입니다.
+                    @if($bestAttempt->passed)
+                        이미 합격한 퀴즈지만 약점 보완용으로 다시 풀 수 있습니다.
+                    @else
+                        이번에는 헷갈린 개념을 줄여보면 됩니다.
+                    @endif
                 </div>
             @endif
 
@@ -53,8 +87,9 @@
                                class="w-full rounded-md border-gray-300 shadow-sm text-sm">
 
                     @elseif($item->question_type === 'self_check')
-                        <input type="hidden" name="answers[{{ $item->id }}]" value="checked">
-                        <p class="text-sm text-gray-500 italic">스스로 확인하는 문항입니다.</p>
+                        <textarea name="answers[{{ $item->id }}]" rows="3" placeholder="한두 문장으로 적어보세요"
+                                  class="w-full rounded-md border-gray-300 shadow-sm text-sm"></textarea>
+                        <p class="text-sm text-gray-500 italic mt-2">자동 채점 대신 작성 완료를 기준으로 저장됩니다.</p>
                     @endif
                 </div>
                 @endforeach

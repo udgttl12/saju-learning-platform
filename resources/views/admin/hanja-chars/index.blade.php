@@ -10,7 +10,7 @@
         <select name="category" class="rounded-md border-gray-300 shadow-sm text-sm px-3 py-2">
             <option value="">전체 카테고리</option>
             @foreach($categories as $cat)
-                <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ \App\Support\UiLabel::hanjaCategory($cat) }}</option>
             @endforeach
         </select>
         <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700">검색</button>
@@ -39,11 +39,11 @@
                 <td class="px-6 py-4 text-2xl font-bold">{{ $hanja->char_value }}</td>
                 <td class="px-6 py-4 text-sm text-gray-900">{{ $hanja->reading_ko }}</td>
                 <td class="px-6 py-4 text-sm text-gray-600">{{ $hanja->meaning_ko }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">{{ $hanja->category }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">{{ $hanja->element }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ \App\Support\UiLabel::hanjaCategory($hanja->category) }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ \App\Support\UiLabel::element($hanja->element) }}</td>
                 <td class="px-6 py-4">
                     <span class="inline-flex text-xs px-2 py-1 rounded-full {{ $hanja->publish_status === 'published' ? 'bg-green-100 text-green-800' : ($hanja->publish_status === 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800') }}">
-                        {{ $hanja->publish_status }}
+                        {{ \App\Support\UiLabel::publishStatus($hanja->publish_status) }}
                     </span>
                 </td>
                 <td class="px-6 py-4 text-right text-sm space-x-2">

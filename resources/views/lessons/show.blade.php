@@ -140,7 +140,7 @@
                                                                 };
                                                             @endphp
                                                             <span class="inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium {{ $elBadge }}">
-                                                                {{ $hc->element }}
+                                                                {{ \App\Support\UiLabel::element($hc->element) }}
                                                             </span>
                                                         @endif
                                                     </a>

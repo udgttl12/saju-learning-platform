@@ -49,6 +49,9 @@ class DatabaseSeeder extends Seeder
             LessonContentEnrichSeeder::class,
             SajuStructureTrackSeeder::class,
             MyeongrihakBasicsTrackSeeder::class,
+            TwelveShinsalTrackSeeder::class,
+            YukchinlonTrackSeeder::class,
+            ExamQuizSeeder::class,
             ManselyeokEnrichSeeder::class,
             DemoProgressSeeder::class,
         ]);

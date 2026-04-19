@@ -335,7 +335,7 @@
                 @if($hanja->category)
                     <div class="bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 sm:rounded-lg p-6">
                         <h3 class="text-sm font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">카테고리</h3>
-                        <p class="text-sm text-gray-700 dark:text-slate-300">{{ $hanja->category }}</p>
+                        <p class="text-sm text-gray-700 dark:text-slate-300">{{ \App\Support\UiLabel::hanjaCategory($hanja->category) }}</p>
                     </div>
                 @endif
             </div>

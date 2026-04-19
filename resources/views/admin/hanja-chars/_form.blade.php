@@ -1,4 +1,12 @@
-@php $h = $hanjaChar ?? null; @endphp
+@php
+    $h = $hanjaChar ?? null;
+    $categoryOptions = \App\Support\UiLabel::hanjaCategories();
+    $selectedCategory = old('category', $h?->category);
+
+    if ($selectedCategory && ! array_key_exists($selectedCategory, $categoryOptions)) {
+        $categoryOptions[$selectedCategory] = $selectedCategory;
+    }
+@endphp
 
 <div class="bg-white rounded-lg shadow p-6 space-y-4">
     @if ($errors->any())
@@ -40,8 +48,14 @@
     <div class="grid grid-cols-3 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700">카테고리</label>
-            <input type="text" name="category" value="{{ old('category', $h?->category) }}"
-                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            <select name="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="">선택</option>
+                @foreach($categoryOptions as $value => $label)
+                    <option value="{{ $value }}" {{ $selectedCategory === $value ? 'selected' : '' }}>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700">오행</label>

@@ -35,11 +35,11 @@
             <tr>
                 <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $lesson->title }}</td>
                 <td class="px-6 py-4 text-sm text-gray-500">{{ $lesson->learningTrack?->title ?? '-' }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">{{ $lesson->lesson_type }}</td>
-                <td class="px-6 py-4 text-sm text-gray-500">Lv.{{ $lesson->difficulty_level }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ \App\Support\UiLabel::lessonType($lesson->lesson_type) }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">레벨 {{ $lesson->difficulty_level }}</td>
                 <td class="px-6 py-4">
                     <span class="inline-flex text-xs px-2 py-1 rounded-full {{ $lesson->publish_status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                        {{ $lesson->publish_status }}
+                        {{ \App\Support\UiLabel::publishStatus($lesson->publish_status) }}
                     </span>
                 </td>
                 <td class="px-6 py-4 text-right text-sm space-x-2">

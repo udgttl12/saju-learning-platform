@@ -6,11 +6,16 @@ use App\Models\Lesson;
 use App\Models\LessonAttempt;
 use App\Models\QuizSet;
 use App\Models\TrackEnrollment;
+use App\Services\LearningProgressService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LessonController extends Controller
 {
+    public function __construct(
+        private LearningProgressService $learningProgressService
+    ) {}
+
     public function show(string $slug)
     {
         $lesson = Lesson::where('slug', $slug)
@@ -30,6 +35,12 @@ class LessonController extends Controller
         if (!$enrollment) {
             return redirect()->route('tracks.show', $lesson->learningTrack->slug)
                 ->with('error', '먼저 트랙에 등록해주세요.');
+        }
+
+        $lessonState = $this->learningProgressService->getLessonState($user, $lesson);
+        if (!$lessonState['unlocked']) {
+            return redirect()->route('tracks.show', $lesson->learningTrack->slug)
+                ->with('error', $lessonState['reason']);
         }
 
         // LessonAttempt 생성 또는 조회
@@ -68,21 +79,57 @@ class LessonController extends Controller
 
         // 레슨에 연결된 한자들 (이미 with에서 로드되지만 명시적으로 전달)
         $hanjaChars = $lesson->hanjaChars;
+        $quizProgress = [];
 
-        return view('lessons.show', compact('lesson', 'attempt', 'quizSets', 'hanjaChars'));
+        foreach ($quizSets as $code => $quizSet) {
+            $bestAttempt = $this->learningProgressService->getBestQuizAttempt($user, $quizSet);
+
+            $quizProgress[$code] = [
+                'passed' => $bestAttempt?->passed ?? false,
+                'best_score' => $bestAttempt?->score_percentage,
+                'attempted' => $bestAttempt !== null,
+            ];
+        }
+
+        return view('lessons.show', compact('lesson', 'attempt', 'quizSets', 'hanjaChars', 'quizProgress'));
     }
 
     public function complete(string $slug)
     {
         $lesson = Lesson::where('slug', $slug)
             ->where('publish_status', 'published')
+            ->with(['steps', 'learningTrack'])
             ->firstOrFail();
 
         $user = Auth::user();
+        $lessonState = $this->learningProgressService->getLessonState($user, $lesson);
+
+        if (!$lessonState['unlocked']) {
+            return redirect()->route('tracks.show', $lesson->learningTrack->slug)
+                ->with('error', $lessonState['reason']);
+        }
 
         $attempt = LessonAttempt::where('user_id', $user->id)
             ->where('lesson_id', $lesson->id)
             ->first();
+
+        $quizSetCodes = $lesson->steps
+            ->filter(fn ($step) => $step->step_type === 'quiz' && !empty($step->payload_json['quiz_set_code']))
+            ->pluck('payload_json.quiz_set_code')
+            ->filter()
+            ->unique()
+            ->values();
+
+        foreach ($quizSetCodes as $quizSetCode) {
+            $quizSet = QuizSet::where('code', $quizSetCode)
+                ->where('publish_status', 'published')
+                ->first();
+
+            if ($quizSet && !$this->learningProgressService->hasPassedQuizSet($user, $quizSet)) {
+                return redirect()->route('lessons.show', $lesson->slug)
+                    ->with('error', '레슨 완료 전에 연결된 퀴즈를 통과해야 합니다.');
+            }
+        }
 
         if ($attempt) {
             $attempt->update([
@@ -91,29 +138,9 @@ class LessonController extends Controller
                 'completed_at' => now(),
                 'last_accessed_at' => now(),
             ]);
-
-            // 트랙 진행률 업데이트
-            $track = $lesson->learningTrack;
-            $totalLessons = $track->lessons()->where('publish_status', 'published')->count();
-            $completedLessons = LessonAttempt::where('user_id', $user->id)
-                ->whereIn('lesson_id', $track->lessons()->pluck('id'))
-                ->where('status', 'completed')
-                ->count();
-
-            $enrollment = TrackEnrollment::where('user_id', $user->id)
-                ->where('learning_track_id', $track->id)
-                ->first();
-
-            if ($enrollment && $totalLessons > 0) {
-                $progress = round(($completedLessons / $totalLessons) * 100, 2);
-                $enrollment->update([
-                    'progress_percent' => $progress,
-                    'last_accessed_at' => now(),
-                    'completed_at' => $progress >= 100 ? now() : null,
-                    'status' => $progress >= 100 ? 'completed' : 'active',
-                ]);
-            }
         }
+
+        $this->learningProgressService->syncTrackEnrollment($user, $lesson->learningTrack);
 
         return redirect()->route('tracks.show', $lesson->learningTrack->slug)
             ->with('success', '레슨을 완료했습니다!');

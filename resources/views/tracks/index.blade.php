@@ -13,10 +13,14 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @php $hanjaNum = ['一','二','三','四','五','六','七','八','九','十']; @endphp
                 @forelse($tracks as $i => $track)
-                    @php $enrolled = in_array($track->id, $enrolledTrackIds); @endphp
+                    @php
+                        $enrolled = in_array($track->id, $enrolledTrackIds);
+                        $state = $trackStates[$track->id] ?? ['unlocked' => true, 'reason' => null];
+                    @endphp
                     <a href="{{ route('tracks.show', $track->slug) }}"
                        class="relative bg-white dark:bg-white/5 backdrop-blur-sm border rounded-2xl p-6 group hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 block overflow-hidden
-                       {{ $enrolled ? 'border-amber-500/40' : 'border-gray-200 dark:border-white/10' }}">
+                       {{ $enrolled ? 'border-amber-500/40' : 'border-gray-200 dark:border-white/10' }}
+                       {{ !$state['unlocked'] ? 'opacity-75' : '' }}">
                         <!-- 한자 숫자 배경 -->
                         <span class="absolute -top-4 -right-2 text-8xl font-serif text-gray-900/[0.03] dark:text-white/[0.03] select-none">{{ $hanjaNum[$i] ?? ($i+1) }}</span>
 
@@ -32,10 +36,16 @@
                                 @if($enrolled)
                                     <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">학습 중</span>
                                 @endif
+                                @if(!$state['unlocked'])
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">잠김</span>
+                                @endif
                             </div>
 
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-amber-400 transition-colors">{{ $track->title }}</h3>
                             <p class="text-sm text-gray-600 dark:text-slate-400 mb-4 line-clamp-2">{{ $track->short_description }}</p>
+                            @if(!$state['unlocked'] && $state['reason'])
+                                <p class="text-xs text-rose-500 dark:text-rose-400 mb-4 line-clamp-2">{{ $state['reason'] }}</p>
+                            @endif
 
                             <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-500">
                                 <span class="flex items-center gap-1">

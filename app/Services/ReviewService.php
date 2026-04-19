@@ -24,22 +24,44 @@ class ReviewService
         $created = 0;
 
         foreach ($results as $result) {
-            if ($result['correct'] || empty($result['target_hanja_char_id'])) {
+            if ($result['correct']) {
                 continue;
             }
 
-            $card = ReviewCard::where('user_id', $user->id)
-                ->where('hanja_char_id', $result['target_hanja_char_id'])
-                ->first();
+            $card = null;
+
+            if (!empty($result['target_hanja_char_id'])) {
+                $card = ReviewCard::where('user_id', $user->id)
+                    ->where('target_type', 'hanja')
+                    ->where('hanja_char_id', $result['target_hanja_char_id'])
+                    ->first();
+            } elseif (!empty($result['concept_key'])) {
+                $card = ReviewCard::where('user_id', $user->id)
+                    ->where('target_type', 'concept')
+                    ->where('concept_key', $result['concept_key'])
+                    ->first();
+            } else {
+                continue;
+            }
 
             if ($card) {
                 $card->update([
                     'due_at' => Carbon::now(),
                     'stage' => $card->stage === 'mastered' ? 'lapsed' : $card->stage,
+                    'prompt_text' => $card->prompt_text ?? $result['prompt_text'],
+                    'answer_payload_json' => $card->answer_payload_json ?: $this->buildReviewAnswerPayload($result),
                 ]);
             } else {
                 ReviewCard::create([
                     'user_id' => $user->id,
+                    'target_type' => empty($result['target_hanja_char_id']) ? 'concept' : 'hanja',
+                    'concept_key' => $result['concept_key'],
+                    'prompt_text' => $result['meta_json']['review_prompt'] ?? $result['prompt_text'],
+                    'answer_payload_json' => $this->buildReviewAnswerPayload($result),
+                    'meta_json' => [
+                        'review_title' => $result['meta_json']['review_title'] ?? $result['concept_key'],
+                        'review_lesson_code' => $result['meta_json']['review_lesson_code'] ?? null,
+                    ],
                     'hanja_char_id' => $result['target_hanja_char_id'],
                     'source_type' => 'quiz',
                     'source_id' => $quizSet->id,
@@ -90,7 +112,7 @@ class ReviewService
                     $interval = max(1, (int) round($interval * $easeFactor));
                 }
                 $repetitions++;
-                $card->stage = 'review';
+                $card->stage = 'reviewing';
                 break;
 
             case 'easy':
@@ -101,7 +123,7 @@ class ReviewService
                 }
                 $easeFactor += 0.15;
                 $repetitions++;
-                $card->stage = 'review';
+                $card->stage = 'reviewing';
                 break;
         }
 
@@ -133,5 +155,14 @@ class ReviewService
         ]);
 
         return $card;
+    }
+
+    private function buildReviewAnswerPayload(array $result): array
+    {
+        return [
+            'question_type' => $result['question_type'],
+            'answer_label' => $result['correct_answer'],
+            'explanation' => $result['explanation'],
+        ];
     }
 }

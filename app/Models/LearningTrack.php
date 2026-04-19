@@ -23,6 +23,7 @@ class LearningTrack extends Model
         'difficulty_level',
         'estimated_total_minutes',
         'sort_order',
+        'unlock_rule_json',
         'publish_status',
         'published_at',
         'created_by',
@@ -33,6 +34,7 @@ class LearningTrack extends Model
         'difficulty_level' => 'integer',
         'estimated_total_minutes' => 'integer',
         'sort_order' => 'integer',
+        'unlock_rule_json' => 'array',
         'published_at' => 'datetime',
     ];
 
@@ -54,6 +56,11 @@ class LearningTrack extends Model
     public function enrollments(): HasMany
     {
         return $this->hasMany(TrackEnrollment::class);
+    }
+
+    public function quizSets(): HasMany
+    {
+        return $this->hasMany(QuizSet::class);
     }
 
     public function users(): BelongsToMany

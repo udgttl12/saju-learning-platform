@@ -23,7 +23,41 @@
                         <span class="inline-flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">불합격 (합격 기준: {{ $quizSet->pass_score }}%)</span>
                     @endif
                 </div>
+                @if($createdReviewCards > 0)
+                    <div class="mt-4 text-sm text-gray-600">
+                        헷갈린 개념 {{ $createdReviewCards }}건이 복습 카드에 추가되었습니다.
+                    </div>
+                @endif
             </div>
+
+            @if($attempt && !empty($attempt->weak_points_json))
+                <div class="bg-white rounded-lg shadow p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">약한 개념</h3>
+                    <div class="flex flex-wrap gap-3">
+                        @foreach($attempt->weak_points_json as $weakPoint)
+                            <div class="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800">
+                                {{ $weakPoint['label'] }} <span class="font-semibold">x{{ $weakPoint['count'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($recommendedLessonMap->isNotEmpty())
+                        <div class="mt-4">
+                            <div class="text-sm font-medium text-gray-700 mb-2">다시 보면 좋은 레슨</div>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($attempt->weak_points_json as $weakPoint)
+                                    @if(!empty($weakPoint['review_lesson_code']) && $recommendedLessonMap->has($weakPoint['review_lesson_code']))
+                                        @php $lesson = $recommendedLessonMap[$weakPoint['review_lesson_code']]; @endphp
+                                        <a href="{{ route('lessons.show', $lesson->slug) }}"
+                                           class="inline-flex items-center px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-sm hover:bg-indigo-100">
+                                            {{ $lesson->title }}
+                                        </a>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             {{-- Detail Results --}}
             @foreach($results as $index => $result)
@@ -37,6 +71,9 @@
                         <p class="text-sm mt-1 {{ $result['correct'] ? 'text-green-600' : 'text-red-600' }}">
                             {{ $result['correct'] ? '정답' : '오답' }}
                         </p>
+                        @if(!$result['correct'] && !empty($result['correct_answer']))
+                            <p class="text-sm text-gray-500 mt-2">정답: {{ $result['correct_answer'] }}</p>
+                        @endif
                     </div>
                 </div>
                 @if($result['explanation'])
@@ -48,9 +85,23 @@
             @endforeach
 
             <div class="mt-8 text-center">
-                <a href="{{ route('quiz.show', $quizSet->code) }}" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-indigo-700">
-                    다시 풀기
-                </a>
+                <div class="flex flex-wrap justify-center gap-3">
+                    <a href="{{ route('quiz.show', $quizSet->code) }}" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-indigo-700">
+                        다시 풀기
+                    </a>
+                    <a href="{{ route('review.index') }}" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-50">
+                        복습 보기
+                    </a>
+                    @if($quizSet->learningTrack)
+                        <a href="{{ route('tracks.show', $quizSet->learningTrack->slug) }}" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-50">
+                            트랙으로 돌아가기
+                        </a>
+                    @elseif($quizSet->lesson)
+                        <a href="{{ route('lessons.show', $quizSet->lesson->slug) }}" class="bg-white border border-gray-300 text-gray-700 px-6 py-2 rounded-lg text-sm hover:bg-gray-50">
+                            레슨으로 돌아가기
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
     </div>

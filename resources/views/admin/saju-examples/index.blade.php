@@ -32,10 +32,10 @@
                 <td class="px-6 py-4 text-sm text-gray-500">
                     {{ $ex->year_stem }}{{ $ex->year_branch }} {{ $ex->month_stem }}{{ $ex->month_branch }} {{ $ex->day_stem }}{{ $ex->day_branch }} {{ $ex->hour_stem }}{{ $ex->hour_branch }}
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-500">Lv.{{ $ex->difficulty_level }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">레벨 {{ $ex->difficulty_level }}</td>
                 <td class="px-6 py-4">
                     <span class="inline-flex text-xs px-2 py-1 rounded-full {{ $ex->publish_status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                        {{ $ex->publish_status }}
+                        {{ \App\Support\UiLabel::publishStatus($ex->publish_status) }}
                     </span>
                 </td>
                 <td class="px-6 py-4 text-right text-sm space-x-2">

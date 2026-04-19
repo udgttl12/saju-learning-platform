@@ -17,7 +17,11 @@
                 <h2 class="text-xl font-bold {{ $grade['color'] }}">{{ $grade['label'] }}</h2>
                 <p class="text-gray-500 dark:text-slate-400 mt-2">{{ $categoryLabel }} 시험 · {{ $correctCount }}/{{ $total }} 정답</p>
 
-                @if($total - $correctCount > 0)
+                @if($requestedCount > $total)
+                    <p class="text-xs text-amber-500 mt-1">요청한 {{ $requestedCount }}문제 중 과목 내 가용 문제가 부족해 {{ $total }}문제로 출제되었습니다.</p>
+                @endif
+
+                @if($isHanjaCategory && $total - $correctCount > 0)
                     <p class="text-sm text-gray-400 dark:text-slate-500 mt-1">틀린 {{ $total - $correctCount }}개 한자가 복습 카드에 등록되었습니다.</p>
                 @endif
             </div>
@@ -29,14 +33,22 @@
                 </div>
                 <div class="divide-y divide-gray-50 dark:divide-slate-700">
                     @foreach($results as $i => $r)
+                    @php $hasChar = !empty($r['has_char']); @endphp
                     <div class="px-6 py-4 flex items-center gap-4 {{ $r['is_correct'] ? '' : 'bg-red-50/50 dark:bg-red-500/5' }}">
                         <span class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
                             {{ $r['is_correct'] ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
                             {{ $i + 1 }}
                         </span>
-                        <span class="text-3xl font-serif w-12 text-center">{{ $r['char_value'] }}</span>
-                        <div class="flex-1">
-                            <div class="text-sm font-medium text-gray-800 dark:text-white">{{ $r['meaning_ko'] }} ({{ $r['reading_ko'] }})</div>
+                        @if($hasChar)
+                            <span class="text-3xl font-serif w-12 text-center">{{ $r['char_value'] }}</span>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            @if($hasChar)
+                                <div class="text-sm font-medium text-gray-800 dark:text-white">{{ $r['meaning_ko'] }} ({{ $r['reading_ko'] }})</div>
+                            @else
+                                <div class="text-sm text-gray-700 dark:text-slate-300 truncate">{{ $r['prompt'] ?? '' }}</div>
+                                <div class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">정답: <span class="font-semibold">{{ $r['meaning_ko'] }}</span></div>
+                            @endif
                             @if(!$r['is_correct'])
                                 <div class="text-xs text-red-500 mt-0.5">오답</div>
                             @endif

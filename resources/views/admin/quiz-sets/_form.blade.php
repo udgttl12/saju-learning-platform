@@ -76,7 +76,7 @@
         @foreach($qs->items as $item)
         <div class="border border-gray-200 rounded p-3 text-sm">
             <span class="font-medium">#{{ $item->sort_order }}</span>
-            <span class="ml-2 text-xs px-2 py-0.5 bg-gray-100 rounded">{{ $item->question_type }}</span>
+            <span class="ml-2 text-xs px-2 py-0.5 bg-gray-100 rounded">{{ \App\Support\UiLabel::questionType($item->question_type) }}</span>
             <span class="ml-2 text-gray-700">{{ Str::limit($item->prompt_text, 60) }}</span>
         </div>
         @endforeach

@@ -15,16 +15,20 @@ class TrackEnrollment extends Model
         'learning_track_id',
         'status',
         'progress_percent',
+        'track_exam_best_score',
         'started_at',
         'last_accessed_at',
         'completed_at',
+        'passed_exam_at',
     ];
 
     protected $casts = [
         'progress_percent' => 'decimal:2',
+        'track_exam_best_score' => 'integer',
         'started_at' => 'datetime',
         'last_accessed_at' => 'datetime',
         'completed_at' => 'datetime',
+        'passed_exam_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
