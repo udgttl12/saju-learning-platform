@@ -18,7 +18,7 @@
                 <form method="POST" action="{{ route('exam.start') }}" class="space-y-6"
                       x-data="{
                           selected: 'all',
-                          chosenCount: 10,
+                          chosenCount: 20,
                           counts: @js($categories),
                           countOptions: @js($countOptions),
                           maxCount() {
@@ -36,8 +36,8 @@
                               }
 
                               if (!options.includes(this.chosenCount)) {
-                                  this.chosenCount = options.includes(10)
-                                      ? 10
+                                  this.chosenCount = options.includes(20)
+                                      ? 20
                                       : options[options.length - 1];
                               }
                           },

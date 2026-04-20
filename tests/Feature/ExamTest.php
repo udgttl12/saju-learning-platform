@@ -21,6 +21,15 @@ class ExamTest extends TestCase
         $this->assertSame([5, 10, 20, 50, 100], $countOptions);
     }
 
+    public function test_exam_index_prefers_twenty_as_default_count(): void
+    {
+        $response = $this->get(route('exam.index'));
+
+        $response->assertOk();
+        $response->assertSee('chosenCount: 20', false);
+        $response->assertSee('options.includes(20)', false);
+    }
+
     public function test_exam_index_uses_generated_pool_counts_for_dynamic_categories(): void
     {
         $response = $this->get(route('exam.index'));
