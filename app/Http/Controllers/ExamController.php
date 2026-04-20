@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\HanjaChar;
 use App\Models\ReviewCard;
-use Illuminate\Http\Request;
+use App\Services\TwelveShinsalQuestionGeneratorService;
+use App\Services\YukchinQuestionGeneratorService;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ExamController extends Controller
 {
-    private const COUNT_OPTIONS = [5, 10, 15, 20, 27];
+    private const BASE_COUNT_OPTIONS = [10, 20, 50, 100];
+
+    public function __construct(
+        private TwelveShinsalQuestionGeneratorService $twelveShinsalQuestionGeneratorService,
+        private YukchinQuestionGeneratorService $yukchinQuestionGeneratorService,
+    ) {}
 
     private function categoryLabels(): array
     {
@@ -32,49 +39,73 @@ class ExamController extends Controller
             'earthly_branches' => HanjaChar::where('publish_status', 'published')->where('category', 'earthly_branches')->count(),
         ];
 
-        $quizCounts = [
-            'twelve_shinsal' => \App\Models\QuizItem::whereHas('quizSet', fn($q) => $q->where('code', 'EXAM_TWELVE_SHINSAL'))->count(),
-            'yukchin' => \App\Models\QuizItem::whereHas('quizSet', fn($q) => $q->where('code', 'EXAM_YUKCHIN'))->count(),
+        $generatedCounts = [
+            'twelve_shinsal' => $this->twelveShinsalQuestionGeneratorService->getPoolSize(),
+            'yukchin' => $this->yukchinQuestionGeneratorService->getPoolSize(),
         ];
 
         $labels = $this->categoryLabels();
         $categories = [];
-        foreach (array_merge($hanjaCounts, $quizCounts) as $key => $count) {
-            $categories[$key] = ['label' => $labels[$key], 'count' => $count];
+
+        foreach (array_merge($hanjaCounts, $generatedCounts) as $key => $count) {
+            $categories[$key] = [
+                'label' => $labels[$key],
+                'count' => $count,
+            ];
         }
 
         return view('exam.index', [
             'categories' => $categories,
-            'countOptions' => self::COUNT_OPTIONS,
+            'countOptions' => $this->buildCountOptions($categories),
         ]);
+    }
+
+    private function buildCountOptions(array $categories): array
+    {
+        $fallbackCounts = array_filter(
+            array_column($categories, 'count'),
+            fn (int $count) => $count >= 4 && $count < min(self::BASE_COUNT_OPTIONS),
+        );
+
+        $countOptions = array_values(array_unique(array_merge(self::BASE_COUNT_OPTIONS, $fallbackCounts)));
+        sort($countOptions);
+
+        return $countOptions;
     }
 
     public function start(Request $request)
     {
         $validCategories = array_keys($this->categoryLabels());
+
         $request->validate([
-            'category' => 'required|in:' . implode(',', $validCategories),
-            'count' => 'required|integer|min:5|max:30',
+            'category' => 'required|in:'.implode(',', $validCategories),
+            'count' => 'required|integer|min:4',
         ]);
 
-        $category = $request->category;
-        $requestedCount = (int) $request->count;
+        $category = $request->string('category')->value();
+        $requestedCount = (int) $request->input('count');
 
-        [$examData, $sourceSize] = in_array($category, ['twelve_shinsal', 'yukchin'], true)
-            ? $this->buildQuizSetExam($category, $requestedCount)
-            : $this->buildHanjaExam($category, $requestedCount);
+        [$examData, $sourceSize] = match ($category) {
+            'twelve_shinsal' => [
+                $this->twelveShinsalQuestionGeneratorService->buildExamQuestions($requestedCount),
+                $this->twelveShinsalQuestionGeneratorService->getPoolSize(),
+            ],
+            'yukchin' => [
+                $this->yukchinQuestionGeneratorService->buildExamQuestions($requestedCount),
+                $this->yukchinQuestionGeneratorService->getPoolSize(),
+            ],
+            default => $this->buildHanjaExam($category, $requestedCount),
+        };
 
-        if ($examData === null) {
+        if ($sourceSize < 4 || empty($examData)) {
             return back()->with('error', '문제를 만들기에 자료가 부족합니다.');
         }
-
-        $actualCount = count($examData);
 
         session()->put('exam_data', [
             'category' => $category,
             'questions' => $examData,
             'requested_count' => $requestedCount,
-            'actual_count' => $actualCount,
+            'actual_count' => count($examData),
             'source_size' => $sourceSize,
             'started_at' => now()->toISOString(),
         ]);
@@ -85,6 +116,7 @@ class ExamController extends Controller
     private function buildHanjaExam(string $category, int $requestedCount): array
     {
         $query = HanjaChar::where('publish_status', 'published');
+
         if ($category !== 'all') {
             $query->where('category', $category);
         }
@@ -96,28 +128,37 @@ class ExamController extends Controller
             return [null, $sourceSize];
         }
 
-        $count = min($requestedCount, $sourceSize);
-        $questions = $allChars->shuffle()->take($count);
+        $questions = $allChars->shuffle()->take(min($requestedCount, $sourceSize));
         $examData = [];
 
         foreach ($questions as $char) {
-            $wrongPool = $allChars->where('id', '!=', $char->id)->shuffle()->take(3);
+            $wrongPool = $allChars
+                ->where('id', '!=', $char->id)
+                ->shuffle()
+                ->take(3);
+
             if ($wrongPool->count() < 3) {
                 $extraPool = HanjaChar::where('publish_status', 'published')
                     ->where('id', '!=', $char->id)
                     ->inRandomOrder()
                     ->limit(3 - $wrongPool->count())
                     ->get();
+
                 $wrongPool = $wrongPool->merge($extraPool)->take(3);
             }
 
-            $choices = $wrongPool->map(fn($c) => [
-                'id' => $c->id,
-                'text' => $c->meaning_ko . ' (' . $c->reading_ko . ')',
-            ])->push([
-                'id' => $char->id,
-                'text' => $char->meaning_ko . ' (' . $char->reading_ko . ')',
-            ])->shuffle()->values()->all();
+            $choices = $wrongPool
+                ->map(fn ($candidate) => [
+                    'id' => $candidate->id,
+                    'text' => $candidate->meaning_ko.' ('.$candidate->reading_ko.')',
+                ])
+                ->push([
+                    'id' => $char->id,
+                    'text' => $char->meaning_ko.' ('.$char->reading_ko.')',
+                ])
+                ->shuffle()
+                ->values()
+                ->all();
 
             $examData[] = [
                 'hanja_char_id' => $char->id,
@@ -126,7 +167,7 @@ class ExamController extends Controller
                 'reading_ko' => $char->reading_ko,
                 'meaning_ko' => $char->meaning_ko,
                 'element' => $char->element,
-                'prompt' => '이 한자의 뜻은?',
+                'prompt' => '이 한자의 뜻은 무엇일까요?',
                 'correct_id' => $char->id,
                 'choices' => $choices,
                 'explanation' => null,
@@ -136,62 +177,11 @@ class ExamController extends Controller
         return [$examData, $sourceSize];
     }
 
-    private function buildQuizSetExam(string $category, int $requestedCount): array
-    {
-        $setCode = $category === 'twelve_shinsal' ? 'EXAM_TWELVE_SHINSAL' : 'EXAM_YUKCHIN';
-
-        $set = \App\Models\QuizSet::where('code', $setCode)->first();
-        if (!$set) {
-            return [null, 0];
-        }
-
-        $items = \App\Models\QuizItem::where('quiz_set_id', $set->id)->get();
-        $sourceSize = $items->count();
-
-        if ($sourceSize < 4) {
-            return [null, $sourceSize];
-        }
-
-        $count = min($requestedCount, $sourceSize);
-        $selected = $items->shuffle()->take($count);
-        $examData = [];
-
-        foreach ($selected as $item) {
-            $choicesRaw = is_array($item->choices_json) ? $item->choices_json : (json_decode($item->choices_json, true) ?: []);
-            $answer = is_array($item->answer_payload_json) ? $item->answer_payload_json : (json_decode($item->answer_payload_json, true) ?: []);
-            $correctIdx = (int) ($answer['correct_choice_index'] ?? 0);
-
-            $choices = [];
-            foreach ($choicesRaw as $idx => $text) {
-                $choices[] = ['id' => $item->id * 100 + $idx, 'text' => $text];
-            }
-            $correctId = $item->id * 100 + $correctIdx;
-            shuffle($choices);
-
-            $prompt = $item->prompt_text;
-            $displayLabel = $choicesRaw[$correctIdx] ?? '';
-
-            $examData[] = [
-                'hanja_char_id' => null,
-                'has_char' => false,
-                'char_value' => '',
-                'reading_ko' => '',
-                'meaning_ko' => $displayLabel,
-                'element' => null,
-                'prompt' => $prompt,
-                'correct_id' => $correctId,
-                'choices' => $choices,
-                'explanation' => $item->explanation_text,
-            ];
-        }
-
-        return [$examData, $sourceSize];
-    }
-
     public function play()
     {
         $data = session('exam_data');
-        if (!$data) {
+
+        if (! $data) {
             return redirect()->route('exam.index');
         }
 
@@ -209,7 +199,8 @@ class ExamController extends Controller
     public function submit(Request $request)
     {
         $data = session('exam_data');
-        if (!$data) {
+
+        if (! $data) {
             return redirect()->route('exam.index');
         }
 
@@ -217,12 +208,15 @@ class ExamController extends Controller
         $results = [];
         $correctCount = 0;
 
-        foreach ($data['questions'] as $i => $q) {
-            $userAnswer = (int) ($answers[$i] ?? 0);
-            $isCorrect = $userAnswer === $q['correct_id'];
-            if ($isCorrect) $correctCount++;
+        foreach ($data['questions'] as $index => $question) {
+            $userAnswer = (int) ($answers[$index] ?? 0);
+            $isCorrect = $userAnswer === $question['correct_id'];
 
-            $results[] = array_merge($q, [
+            if ($isCorrect) {
+                $correctCount++;
+            }
+
+            $results[] = array_merge($question, [
                 'user_answer_id' => $userAnswer,
                 'is_correct' => $isCorrect,
             ]);
@@ -231,29 +225,35 @@ class ExamController extends Controller
         $total = count($results);
         $score = $total > 0 ? round(($correctCount / $total) * 100) : 0;
 
-        // 오답 한자를 복습 카드에 등록
         if ($request->user()) {
-            foreach ($results as $r) {
-                if ($r['is_correct'] || empty($r['hanja_char_id'])) continue;
+            foreach ($results as $result) {
+                if ($result['is_correct'] || empty($result['hanja_char_id'])) {
+                    continue;
+                }
 
                 $card = ReviewCard::where('user_id', $request->user()->id)
-                    ->where('hanja_char_id', $r['hanja_char_id'])
+                    ->where('hanja_char_id', $result['hanja_char_id'])
                     ->first();
 
                 if ($card) {
-                    $card->update(['due_at' => Carbon::now(), 'stage' => $card->stage === 'mastered' ? 'lapsed' : $card->stage]);
-                } else {
-                    ReviewCard::create([
-                        'user_id' => $request->user()->id,
-                        'hanja_char_id' => $r['hanja_char_id'],
-                        'source_type' => 'exam',
-                        'stage' => 'new',
-                        'ease_factor' => 2.50,
-                        'interval_days' => 0,
-                        'repetitions' => 0,
+                    $card->update([
                         'due_at' => Carbon::now(),
+                        'stage' => $card->stage === 'mastered' ? 'lapsed' : $card->stage,
                     ]);
+
+                    continue;
                 }
+
+                ReviewCard::create([
+                    'user_id' => $request->user()->id,
+                    'hanja_char_id' => $result['hanja_char_id'],
+                    'source_type' => 'exam',
+                    'stage' => 'new',
+                    'ease_factor' => 2.50,
+                    'interval_days' => 0,
+                    'repetitions' => 0,
+                    'due_at' => Carbon::now(),
+                ]);
             }
         }
 
