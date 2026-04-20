@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HanjaChar;
 use App\Models\ReviewCard;
+use App\Services\HanjaQuestionGeneratorService;
 use App\Services\TwelveShinsalQuestionGeneratorService;
 use App\Services\YukchinQuestionGeneratorService;
 use Carbon\Carbon;
@@ -14,6 +14,7 @@ class ExamController extends Controller
     private const BASE_COUNT_OPTIONS = [10, 20, 50, 100];
 
     public function __construct(
+        private HanjaQuestionGeneratorService $hanjaQuestionGeneratorService,
         private TwelveShinsalQuestionGeneratorService $twelveShinsalQuestionGeneratorService,
         private YukchinQuestionGeneratorService $yukchinQuestionGeneratorService,
     ) {}
@@ -33,10 +34,10 @@ class ExamController extends Controller
     public function index()
     {
         $hanjaCounts = [
-            'all' => HanjaChar::where('publish_status', 'published')->count(),
-            'five_elements' => HanjaChar::where('publish_status', 'published')->where('category', 'five_elements')->count(),
-            'heavenly_stems' => HanjaChar::where('publish_status', 'published')->where('category', 'heavenly_stems')->count(),
-            'earthly_branches' => HanjaChar::where('publish_status', 'published')->where('category', 'earthly_branches')->count(),
+            'all' => $this->hanjaQuestionGeneratorService->getPoolSize('all'),
+            'five_elements' => $this->hanjaQuestionGeneratorService->getPoolSize('five_elements'),
+            'heavenly_stems' => $this->hanjaQuestionGeneratorService->getPoolSize('heavenly_stems'),
+            'earthly_branches' => $this->hanjaQuestionGeneratorService->getPoolSize('earthly_branches'),
         ];
 
         $generatedCounts = [
@@ -86,6 +87,10 @@ class ExamController extends Controller
         $requestedCount = (int) $request->input('count');
 
         [$examData, $sourceSize] = match ($category) {
+            'all', 'five_elements', 'heavenly_stems', 'earthly_branches' => [
+                $this->hanjaQuestionGeneratorService->buildExamQuestions($category, $requestedCount),
+                $this->hanjaQuestionGeneratorService->getPoolSize($category),
+            ],
             'twelve_shinsal' => [
                 $this->twelveShinsalQuestionGeneratorService->buildExamQuestions($requestedCount),
                 $this->twelveShinsalQuestionGeneratorService->getPoolSize(),
@@ -94,11 +99,10 @@ class ExamController extends Controller
                 $this->yukchinQuestionGeneratorService->buildExamQuestions($requestedCount),
                 $this->yukchinQuestionGeneratorService->getPoolSize(),
             ],
-            default => $this->buildHanjaExam($category, $requestedCount),
         };
 
         if ($sourceSize < 4 || empty($examData)) {
-            return back()->with('error', '문제를 만들기에 자료가 부족합니다.');
+            return back()->with('error', '문제를 만들기에 재료가 부족합니다.');
         }
 
         session()->put('exam_data', [
@@ -111,70 +115,6 @@ class ExamController extends Controller
         ]);
 
         return redirect()->route('exam.play');
-    }
-
-    private function buildHanjaExam(string $category, int $requestedCount): array
-    {
-        $query = HanjaChar::where('publish_status', 'published');
-
-        if ($category !== 'all') {
-            $query->where('category', $category);
-        }
-
-        $allChars = $query->get();
-        $sourceSize = $allChars->count();
-
-        if ($sourceSize < 4) {
-            return [null, $sourceSize];
-        }
-
-        $questions = $allChars->shuffle()->take(min($requestedCount, $sourceSize));
-        $examData = [];
-
-        foreach ($questions as $char) {
-            $wrongPool = $allChars
-                ->where('id', '!=', $char->id)
-                ->shuffle()
-                ->take(3);
-
-            if ($wrongPool->count() < 3) {
-                $extraPool = HanjaChar::where('publish_status', 'published')
-                    ->where('id', '!=', $char->id)
-                    ->inRandomOrder()
-                    ->limit(3 - $wrongPool->count())
-                    ->get();
-
-                $wrongPool = $wrongPool->merge($extraPool)->take(3);
-            }
-
-            $choices = $wrongPool
-                ->map(fn ($candidate) => [
-                    'id' => $candidate->id,
-                    'text' => $candidate->meaning_ko.' ('.$candidate->reading_ko.')',
-                ])
-                ->push([
-                    'id' => $char->id,
-                    'text' => $char->meaning_ko.' ('.$char->reading_ko.')',
-                ])
-                ->shuffle()
-                ->values()
-                ->all();
-
-            $examData[] = [
-                'hanja_char_id' => $char->id,
-                'has_char' => true,
-                'char_value' => $char->char_value,
-                'reading_ko' => $char->reading_ko,
-                'meaning_ko' => $char->meaning_ko,
-                'element' => $char->element,
-                'prompt' => '이 한자의 뜻은 무엇일까요?',
-                'correct_id' => $char->id,
-                'choices' => $choices,
-                'explanation' => null,
-            ];
-        }
-
-        return [$examData, $sourceSize];
     }
 
     public function play()
