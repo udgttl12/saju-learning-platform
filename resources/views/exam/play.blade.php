@@ -8,12 +8,35 @@
                 answers: {},
                 submitted: {},
                 correctCount: 0,
+                autoAdvanceTimer: null,
                 questions: @js($questions),
+                clearAutoAdvanceTimer() {
+                    if (this.autoAdvanceTimer) {
+                        clearTimeout(this.autoAdvanceTimer);
+                        this.autoAdvanceTimer = null;
+                    }
+                },
+                scheduleAutoAdvance(qi) {
+                    if (qi >= this.total - 1) return;
+
+                    this.clearAutoAdvanceTimer();
+                    this.autoAdvanceTimer = setTimeout(() => {
+                        if (this.current !== qi) return;
+                        if (!this.submitted[qi]) return;
+                        if (this.answers[qi] !== this.questions[qi].correct_id) return;
+
+                        this.next();
+                    }, 3000);
+                },
                 select(qi, choiceId) {
                     if (this.submitted[qi]) return;
+                    this.clearAutoAdvanceTimer();
                     this.answers[qi] = choiceId;
                     this.submitted[qi] = true;
-                    if (choiceId === this.questions[qi].correct_id) this.correctCount++;
+                    if (choiceId === this.questions[qi].correct_id) {
+                        this.correctCount++;
+                        this.scheduleAutoAdvance(qi);
+                    }
                 },
                 isCorrectChoice(qi, choiceId) {
                     return this.submitted[qi] && choiceId === this.questions[qi].correct_id;
@@ -22,10 +45,16 @@
                     return this.submitted[qi] && this.answers[qi] === choiceId && choiceId !== this.questions[qi].correct_id;
                 },
                 next() {
+                    this.clearAutoAdvanceTimer();
                     if (this.current < this.total - 1) this.current++;
                 },
                 prev() {
+                    this.clearAutoAdvanceTimer();
                     if (this.current > 0) this.current--;
+                },
+                goTo(qi) {
+                    this.clearAutoAdvanceTimer();
+                    this.current = qi;
                 },
                 allAnswered() {
                     return Object.keys(this.submitted).length >= this.total;
@@ -128,7 +157,7 @@
                     {{-- 문제 번호 칸 --}}
                     <div class="grid grid-cols-5 sm:grid-cols-10 gap-1 justify-center">
                         <template x-for="(q, qi) in questions" :key="'dot'+qi">
-                            <button @click="current = qi"
+                            <button @click="goTo(qi)"
                                 class="w-8 h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center"
                                 :class="{
                                     'bg-emerald-500 text-white': submitted[qi] && answers[qi] === q.correct_id,

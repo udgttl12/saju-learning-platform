@@ -62,38 +62,48 @@ class HanjaQuestionGeneratorService
             return [];
         }
 
+        $quizMeanings = $this->quizMeaningMap($chars);
+
         return array_values(array_filter(array_merge(
-            $this->buildCharToMeaningQuestions($chars),
+            $this->buildCharToMeaningQuestions($chars, $quizMeanings),
             $this->buildCharToReadingQuestions($chars),
             $this->buildCharToElementQuestions($chars),
             $this->buildCharToYinYangQuestions($chars),
-            $this->buildMeaningToCharQuestions($chars),
+            $this->buildMeaningToCharQuestions($chars, $quizMeanings),
             $this->buildReadingToCharQuestions($chars),
             $this->buildMeaningReadingToCharQuestions($chars),
-            $this->buildMeaningToReadingQuestions($chars),
-            $this->buildReadingToMeaningQuestions($chars),
-            $this->buildMeaningToElementQuestions($chars),
+            $this->buildMeaningToReadingQuestions($chars, $quizMeanings),
+            $this->buildReadingToMeaningQuestions($chars, $quizMeanings),
+            $this->buildMeaningToElementQuestions($chars, $quizMeanings),
             $this->buildElementReadingToCharQuestions($chars),
             $this->buildCharToCategoryQuestions($chars, $category),
         )));
     }
 
-    private function buildCharToMeaningQuestions(Collection $chars): array
+    private function buildCharToMeaningQuestions(Collection $chars, Collection $quizMeanings): array
     {
-        $meaningChoices = $this->uniqueFieldValues($chars, 'meaning_ko');
+        $meaningChoices = $this->uniqueQuizMeanings($quizMeanings);
 
         if (count($meaningChoices) < 4) {
             return [];
         }
 
         return $chars
-            ->map(fn (HanjaChar $char) => $this->makeQuestion(
-                char: $char,
-                prompt: "한자 {$char->char_value}의 뜻으로 맞는 것은 무엇일까요?",
-                choices: $this->buildChoices($char->meaning_ko, $meaningChoices),
-                correct: $char->meaning_ko,
-                explanation: "{$char->char_value}의 뜻은 {$char->meaning_ko}, 음은 {$char->reading_ko}입니다.",
-            ))
+            ->map(function (HanjaChar $char) use ($meaningChoices, $quizMeanings) {
+                $quizMeaning = $this->quizMeaningFor($quizMeanings, $char);
+
+                if (! $this->isFilledValue($quizMeaning)) {
+                    return null;
+                }
+
+                return $this->makeQuestion(
+                    char: $char,
+                    prompt: "한자 {$char->char_value}의 뜻으로 맞는 것은 무엇일까요?",
+                    choices: $this->buildChoices($quizMeaning, $meaningChoices),
+                    correct: $quizMeaning,
+                    explanation: "{$char->char_value}의 뜻은 {$quizMeaning}, 음은 {$char->reading_ko}입니다.",
+                );
+            })
             ->filter()
             ->values()
             ->all();
@@ -163,16 +173,25 @@ class HanjaQuestionGeneratorService
             ->all();
     }
 
-    private function buildMeaningToCharQuestions(Collection $chars): array
+    private function buildMeaningToCharQuestions(Collection $chars, Collection $quizMeanings): array
     {
         return $chars
-            ->map(fn (HanjaChar $char) => $this->makeQuestion(
-                char: $char,
-                prompt: "\"{$char->meaning_ko}\"에 해당하는 한자는 무엇일까요?",
-                choices: $this->buildCharChoices($char, $chars),
-                correct: $char->char_value,
-                explanation: "{$char->char_value}는 {$char->meaning_ko}를 뜻하고, 음은 {$char->reading_ko}입니다.",
-            ))
+            ->filter(fn (HanjaChar $char) => $this->hasUniqueQuizMeaning($quizMeanings, $char))
+            ->map(function (HanjaChar $char) use ($chars, $quizMeanings) {
+                $quizMeaning = $this->quizMeaningFor($quizMeanings, $char);
+
+                if (! $this->isFilledValue($quizMeaning)) {
+                    return null;
+                }
+
+                return $this->makeQuestion(
+                    char: $char,
+                    prompt: "\"{$quizMeaning}\"에 해당하는 한자는 무엇일까요?",
+                    choices: $this->buildCharChoices($char, $chars),
+                    correct: $char->char_value,
+                    explanation: "{$char->char_value}는 {$quizMeaning}를 뜻하고, 음은 {$char->reading_ko}입니다.",
+                );
+            })
             ->filter()
             ->values()
             ->all();
@@ -209,7 +228,7 @@ class HanjaQuestionGeneratorService
             ->all();
     }
 
-    private function buildMeaningToReadingQuestions(Collection $chars): array
+    private function buildMeaningToReadingQuestions(Collection $chars, Collection $quizMeanings): array
     {
         $readingChoices = $this->uniqueFieldValues($chars, 'reading_ko');
 
@@ -218,21 +237,30 @@ class HanjaQuestionGeneratorService
         }
 
         return $chars
-            ->map(fn (HanjaChar $char) => $this->makeQuestion(
-                char: $char,
-                prompt: "\"{$char->meaning_ko}\"에 해당하는 한자의 음은 무엇일까요?",
-                choices: $this->buildChoices($char->reading_ko, $readingChoices),
-                correct: $char->reading_ko,
-                explanation: "{$char->meaning_ko}에 해당하는 한자는 {$char->char_value}, 음은 {$char->reading_ko}입니다.",
-            ))
+            ->filter(fn (HanjaChar $char) => $this->hasUniqueQuizMeaning($quizMeanings, $char))
+            ->map(function (HanjaChar $char) use ($readingChoices, $quizMeanings) {
+                $quizMeaning = $this->quizMeaningFor($quizMeanings, $char);
+
+                if (! $this->isFilledValue($quizMeaning)) {
+                    return null;
+                }
+
+                return $this->makeQuestion(
+                    char: $char,
+                    prompt: "\"{$quizMeaning}\"에 해당하는 한자의 음은 무엇일까요?",
+                    choices: $this->buildChoices($char->reading_ko, $readingChoices),
+                    correct: $char->reading_ko,
+                    explanation: "{$quizMeaning}에 해당하는 한자는 {$char->char_value}, 음은 {$char->reading_ko}입니다.",
+                );
+            })
             ->filter()
             ->values()
             ->all();
     }
 
-    private function buildReadingToMeaningQuestions(Collection $chars): array
+    private function buildReadingToMeaningQuestions(Collection $chars, Collection $quizMeanings): array
     {
-        $meaningChoices = $this->uniqueFieldValues($chars, 'meaning_ko');
+        $meaningChoices = $this->uniqueQuizMeanings($quizMeanings);
 
         if (count($meaningChoices) < 4) {
             return [];
@@ -240,19 +268,27 @@ class HanjaQuestionGeneratorService
 
         return $chars
             ->filter(fn (HanjaChar $char) => $this->isUniqueFieldValue($chars, 'reading_ko', $char->reading_ko))
-            ->map(fn (HanjaChar $char) => $this->makeQuestion(
-                char: $char,
-                prompt: "\"{$char->reading_ko}\"로 읽는 한자의 뜻은 무엇일까요?",
-                choices: $this->buildChoices($char->meaning_ko, $meaningChoices),
-                correct: $char->meaning_ko,
-                explanation: "{$char->reading_ko}로 읽는 한자는 {$char->char_value}이고, 뜻은 {$char->meaning_ko}입니다.",
-            ))
+            ->map(function (HanjaChar $char) use ($meaningChoices, $quizMeanings) {
+                $quizMeaning = $this->quizMeaningFor($quizMeanings, $char);
+
+                if (! $this->isFilledValue($quizMeaning)) {
+                    return null;
+                }
+
+                return $this->makeQuestion(
+                    char: $char,
+                    prompt: "\"{$char->reading_ko}\"로 읽는 한자의 뜻은 무엇일까요?",
+                    choices: $this->buildChoices($quizMeaning, $meaningChoices),
+                    correct: $quizMeaning,
+                    explanation: "{$char->reading_ko}로 읽는 한자는 {$char->char_value}이고, 뜻은 {$quizMeaning}입니다.",
+                );
+            })
             ->filter()
             ->values()
             ->all();
     }
 
-    private function buildMeaningToElementQuestions(Collection $chars): array
+    private function buildMeaningToElementQuestions(Collection $chars, Collection $quizMeanings): array
     {
         $elementChoices = array_values(array_filter(
             self::ELEMENT_LABELS,
@@ -260,15 +296,21 @@ class HanjaQuestionGeneratorService
         ));
 
         return $chars
-            ->map(function (HanjaChar $char) use ($elementChoices) {
+            ->filter(fn (HanjaChar $char) => $this->hasUniqueQuizMeaning($quizMeanings, $char))
+            ->map(function (HanjaChar $char) use ($elementChoices, $quizMeanings) {
                 $correct = $this->elementLabel($char);
+                $quizMeaning = $this->quizMeaningFor($quizMeanings, $char);
+
+                if (! $this->isFilledValue($quizMeaning)) {
+                    return null;
+                }
 
                 return $this->makeQuestion(
                     char: $char,
-                    prompt: "\"{$char->meaning_ko}\"에 해당하는 한자가 상징하는 오행은 무엇일까요?",
+                    prompt: "\"{$quizMeaning}\"에 해당하는 한자가 상징하는 오행은 무엇일까요?",
                     choices: $this->buildChoices($correct, $elementChoices),
                     correct: $correct,
-                    explanation: "{$char->meaning_ko}에 해당하는 한자 {$char->char_value}는 {$correct} 기운을 상징합니다.",
+                    explanation: "{$quizMeaning}에 해당하는 한자 {$char->char_value}는 {$correct} 기운을 상징합니다.",
                 );
             })
             ->filter()
@@ -409,6 +451,98 @@ class HanjaQuestionGeneratorService
         }
 
         return count(array_unique($choices)) === 4;
+    }
+
+    private function quizMeaningMap(Collection $chars): Collection
+    {
+        return $chars->mapWithKeys(fn (HanjaChar $char) => [
+            $char->id => $this->sanitizeMeaning($char->meaning_ko, $char->reading_ko),
+        ]);
+    }
+
+    private function uniqueQuizMeanings(Collection $quizMeanings): array
+    {
+        return $quizMeanings
+            ->filter(fn ($value) => $this->isFilledValue($value))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function quizMeaningFor(Collection $quizMeanings, HanjaChar $char): ?string
+    {
+        $quizMeaning = $quizMeanings->get($char->id);
+
+        return $this->isFilledValue($quizMeaning) ? $quizMeaning : null;
+    }
+
+    private function hasUniqueQuizMeaning(Collection $quizMeanings, HanjaChar $char): bool
+    {
+        $quizMeaning = $this->quizMeaningFor($quizMeanings, $char);
+
+        if (! $this->isFilledValue($quizMeaning)) {
+            return false;
+        }
+
+        return $quizMeanings
+            ->filter(fn ($value) => $value === $quizMeaning)
+            ->count() === 1;
+    }
+
+    private function sanitizeMeaning(?string $meaning, ?string $reading): ?string
+    {
+        if (! $this->isFilledValue($meaning)) {
+            return null;
+        }
+
+        $sanitized = trim($meaning);
+        $normalizedReading = $this->isFilledValue($reading) ? trim($reading) : '';
+
+        if ($normalizedReading !== '') {
+            $patterns = [
+                '/\s*의\s*'.preg_quote($normalizedReading, '/').'\s*$/u',
+                '/\s+'.preg_quote($normalizedReading, '/').'\s*$/u',
+            ];
+
+            foreach ($patterns as $pattern) {
+                $nextSanitized = preg_replace($pattern, '', $sanitized);
+
+                if (is_string($nextSanitized) && $nextSanitized !== $sanitized) {
+                    $sanitized = $nextSanitized;
+                    break;
+                }
+            }
+        }
+
+        $sanitized = $this->normalizeQuizMeaning($sanitized);
+
+        if (! $this->isFilledValue($sanitized)) {
+            return null;
+        }
+
+        if ($normalizedReading !== '' && $this->endsWithReadingToken($sanitized, $normalizedReading)) {
+            return null;
+        }
+
+        return $sanitized;
+    }
+
+    private function normalizeQuizMeaning(string $meaning): string
+    {
+        $normalized = preg_replace('/\s+/u', ' ', trim($meaning)) ?? trim($meaning);
+        $normalized = preg_replace('/\s*,\s*/u', ', ', $normalized) ?? $normalized;
+        $normalized = preg_replace('/(?:\s|[,·ㆍ\/])+$/u', '', $normalized) ?? $normalized;
+
+        return trim($normalized);
+    }
+
+    private function endsWithReadingToken(string $meaning, string $reading): bool
+    {
+        if ($meaning === $reading) {
+            return true;
+        }
+
+        return preg_match('/(?:\s+|의\s*)'.preg_quote($reading, '/').'\s*$/u', $meaning) === 1;
     }
 
     private function uniqueFieldValues(Collection $chars, string $field): array
