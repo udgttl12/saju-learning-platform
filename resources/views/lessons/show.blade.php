@@ -268,18 +268,16 @@
                                         {!! nl2br(e($step->content_markdown)) !!}
                                     </div>
 
-                                    {{-- 연습 안내 --}}
-                                    <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-lg p-4 mb-6">
-                                        <p class="text-sm text-emerald-800 dark:text-emerald-400 font-medium">
-                                            아래 캔버스에서 {{ $repeatCount }}번 연습해보세요!
-                                            @if($practiceChar)
-                                                가이드 글자: <span class="text-2xl font-serif">{{ $practiceChar->char_value }}</span>
-                                            @endif
-                                        </p>
-                                    </div>
-
-                                    {{-- 쓰기 캔버스 (노트 그리드 방식) --}}
                                     @if($practiceChar)
+                                        {{-- 연습 안내 --}}
+                                        <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-lg p-4 mb-6">
+                                            <p class="text-sm text-emerald-800 dark:text-emerald-400 font-medium">
+                                                아래 캔버스에서 {{ $repeatCount }}번 연습해보세요!
+                                                가이드 글자: <span class="text-2xl font-serif">{{ $practiceChar->char_value }}</span>
+                                            </p>
+                                        </div>
+
+                                        {{-- 쓰기 캔버스 (노트 그리드 방식) --}}
                                         <div x-data="{
                                             cellCount: {{ $repeatCount * 2 }},
                                             cells: [],
@@ -375,6 +373,12 @@
                                                     </div>
                                                 </template>
                                             </div>
+                                        </div>
+                                    @else
+                                        <div class="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg p-4">
+                                            <p class="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                                                연습 글자가 연결되지 않았습니다. 관리자에서 이 레슨에 한자를 연결하면 쓰기 캔버스가 표시됩니다.
+                                            </p>
                                         </div>
                                     @endif
 

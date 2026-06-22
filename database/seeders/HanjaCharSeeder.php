@@ -95,7 +95,7 @@ class HanjaCharSeeder extends Seeder
             ['id' => 37, 'hanja_char_id' => 22, 'hanja_group_id' => 5, 'sort_order' => 4],
         ]);
 
-        // lesson_hanja_links: 31건
+        // lesson_hanja_links: 32건
         DB::table('lesson_hanja_links')->insert([
             // Lesson 3 - 오행
             ['id' => 1, 'lesson_id' => 3, 'hanja_char_id' => 1, 'relation_type' => 'primary', 'sort_order' => 1],
@@ -135,6 +135,9 @@ class HanjaCharSeeder extends Seeder
             ['id' => 29, 'lesson_id' => 6, 'hanja_char_id' => 16, 'relation_type' => 'example', 'sort_order' => 2],
             ['id' => 30, 'lesson_id' => 6, 'hanja_char_id' => 8, 'relation_type' => 'example', 'sort_order' => 3],
             ['id' => 31, 'lesson_id' => 6, 'hanja_char_id' => 18, 'relation_type' => 'example', 'sort_order' => 4],
+
+            // Lesson 2 - 필순 감각 익히기
+            ['id' => 32, 'lesson_id' => 2, 'hanja_char_id' => 1, 'relation_type' => 'primary', 'sort_order' => 1],
         ]);
     }
 }

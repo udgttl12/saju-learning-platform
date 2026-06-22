@@ -147,7 +147,8 @@ VALUES
   (16, 5, 16, 'primary', 1), (17, 5, 17, 'primary', 2), (18, 5, 18, 'primary', 3), (19, 5, 19, 'primary', 4), (20, 5, 20, 'primary', 5),
   (21, 5, 21, 'primary', 6), (22, 5, 22, 'primary', 7), (23, 5, 23, 'primary', 8), (24, 5, 24, 'primary', 9), (25, 5, 25, 'primary', 10),
   (26, 5, 26, 'primary', 11), (27, 5, 27, 'primary', 12),
-  (28, 6, 6, 'example', 1), (29, 6, 16, 'example', 2), (30, 6, 8, 'example', 3), (31, 6, 18, 'example', 4);
+  (28, 6, 6, 'example', 1), (29, 6, 16, 'example', 2), (30, 6, 8, 'example', 3), (31, 6, 18, 'example', 4),
+  (32, 2, 1, 'primary', 1);
 
 INSERT INTO `quiz_sets` (`id`, `lesson_id`, `code`, `title`, `scope_type`, `description`, `difficulty_level`, `pass_score`, `publish_status`, `published_at`)
 VALUES
